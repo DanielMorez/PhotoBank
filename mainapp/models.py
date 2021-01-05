@@ -1,21 +1,39 @@
+from PIL import Image
+
 from django.db import models
 from django.contrib.auth import get_user_model
 from django.contrib.contenttypes.models import ContentType
 from django.contrib.contenttypes.fields import GenericForeignKey
+from django.urls import reverse
 
 User = get_user_model()
 # Create your models here.
 
-#1 Category
+#1 Album
 #2 Product
 #3 CartProduct
 #4 Cart
 #5 Order
+#6 Photo type
 
-#6 Customer
-#7 Specification
+#7 Customer
 
-class Category(models.Model):
+def get_product_url(obj, viewname):
+    ct_model = obj.__class__.meta.model_name
+    return reverse(viewname, kwargs={'ct_model': ct_model, 'slug': obj.slug})
+
+class LatestCategoriesManager:
+
+    @staticmethod
+    def get_categories_for_main_page(self):
+        products = Album.objects.all().reverse()[:5]
+        return products
+
+class LatestCategories:
+
+    objects = LatestCategoriesManager
+
+class Album(models.Model):
 
     name = models.CharField(max_length=255, verbose_name='Имя категории')
     slug = models.SlugField(unique=True)
@@ -23,20 +41,33 @@ class Category(models.Model):
     def __str__(self):
         return self.name
 
+    def get_absolute_url(self):
+        return get_product_url(self, 'choice_type_photo')
+
 class Product(models.Model):
+
+    MIN_RESOLUTION = (400, 400)
+    MAX_RESOLUTION = (2400, 4200)
+    MAX_IMG_SIZE = 10485760
 
     class Meta:
         abstract = True
 
-    category = models.ForeignKey(Category, verbose_name='Категория', on_delete=models.CASCADE)
-    title = models.CharField(max_length=255, verbose_name='Имя продукта')
+    album = models.ForeignKey(Album, verbose_name='Альбом', on_delete=models.CASCADE)
+    title = models.CharField(max_length=255, verbose_name='Имя фотографии')
     slug = models.SlugField(unique=True)
     image = models.ImageField()
-    description = models.TextField(verbose_name='Описание', null=True)
     price = models.DecimalField(max_digits=9, decimal_places=2, verbose_name='Цена')
 
     def __str__(self):
         return self.title
+
+class PhotoType(models.Model):
+
+    type_of_photo = models.CharField(max_length=255, verbose_name='Тип фотографии')
+
+    def __str__(self):
+        return f'Тип фотографии: {self.type_of_photo}'
 
 class CartProduct(models.Model):
 
@@ -49,12 +80,17 @@ class CartProduct(models.Model):
     final_price = models.DecimalField(max_digits=9, decimal_places=2, verbose_name='Общая цена')
 
     def __str__(self):
-        return f'Продукт: {self.product.title} (для корзины)'
+        return f'Продукт: {self.content_object.title} (для корзины)'
 
 class Photo(Product):
 
+    type_of_photo = models.ForeignKey(PhotoType, verbose_name='Тип фотографии', on_delete=models.CASCADE)
+
     def __str__(self):
-        return f"{self.category.name} : {self.title}"
+        return f"{self.album.name} : {self.title}"
+
+    def get_absolute_url(self):
+        return get_product_url(self, 'product_detail')
 
 class Cart(models.Model):
 
@@ -62,6 +98,8 @@ class Cart(models.Model):
     products = models.ManyToManyField(CartProduct, blank=True, related_name='related_cart')
     total_products = models.PositiveIntegerField(default=0)
     final_price = models.DecimalField(max_digits=9, decimal_places=2, verbose_name='Общая цена')
+    in_order = models.BooleanField(default=False)
+    for_anonymous_user = models.BooleanField(default=True)
 
     def __str__(self):
         return str(self.id)
@@ -77,12 +115,4 @@ class Customer(models.Model):
         return f'Покупатель: {self.user.first_name} {self.user.last_name}'
 
 
-# class Specification(models.Model):
-#
-#     content_type = models.ForeignKey(ContentType, on_delete=models.CASCADE)
-#     object_id = models.PositiveIntegerField()
-#     name = models.CharField(max_length=255, verbose_name='Имя товара для характеристик')
-#
-#     def __str__(self):
-#         return f"Характеристики для товара: {self.name}"
 

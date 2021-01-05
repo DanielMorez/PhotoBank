@@ -1,0 +1,13 @@
+{%  extends 'base.html' %}
+    {% block content %}
+        <div class="align-middle mt-3 mb-3 ">
+            <h5 class="display-4 row d-flex justify-content-center">
+                {{ album.name }}
+            </h5>
+            {% for type in photo_types %}
+                <div class="row mt-3 mb-3 d-flex justify-content-center">
+                    <a href="{{ type.type_of_photo }}/" class="btn btn-primary" style="width: 30%;">{{ type.type_of_photo }}</a>
+                </div>
+            {% endfor %}
+        </div>
+    {% endblock content %}
