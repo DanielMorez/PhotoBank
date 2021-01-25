@@ -1,0 +1,14 @@
+{% if request.user.is_authenticated %}
+
+              <div class="col-lg-3">
+
+                <h1 class="my-4">Альбомы</h1>
+                <div class="list-group">
+                {% for album in albums %}
+                    <a href="/albums/{{ album.slug }}" class="list-group-item">
+                        {{ album.name }}
+                    </a>
+                {% endfor %}
+                </div>
+              </div>
+{% endif %}

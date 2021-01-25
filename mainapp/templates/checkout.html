@@ -1,0 +1,58 @@
+{% extends 'base.html' %}
+{% load crispy_forms_tags %}
+{% csrf_token %}
+{% block content %}
+    {% if cart.products.count %}
+        <h3 class="text-center mt-5 mb-5">Оформление заказа</h3>
+        <table class="table">
+          <thead>
+            <tr>
+                <th scope="col">Наимеование</th>
+                <th scope="col">Изображение</th>
+                <th scope="col">Цена</th>
+                <th scope="col">Кол-во</th>
+                <th scope="col">Общая цена</th>
+            </tr>
+          </thead>
+          <tbody>
+{#            {{ request.user }}#}
+{#            {{ cart.products.all }}#}
+            {% for item in cart.products.all %}
+            <tr>
+              <th scope="row">{{ item.content_object.title }}</th>
+                <td><a href="{{ item.content_object.image.url }}">Ссылка на изображени</a></td>
+              <td>€ {{ item.content_object.price }}</td>
+                <td>{{ item.qty }}</td>
+            <td>{{ item.final_price }}</td>
+            </tr>
+          {% endfor %}
+          <tr>
+              <td colspan="2"></td>
+              <td>Итог</td>
+              <td>{{ cart.total_products }}</td>
+              <td><strong>€{{ cart.final_price }}</strong></td>
+          </tr>
+              </tbody>
+        </table>
+    {% endif %}
+
+    <hr>
+    {% if messages %}
+        {% for message in messages %}
+            <div class="alert alert-info alert-dismissible fade show" role="alert">
+                <strong>{{ message }}</strong>
+                <a href="#" class="close" data-dismiss="alert" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </a>
+            </div>
+
+        {% endfor %}
+    {% endif %}
+
+    <h3 class="text-center mt-5 mb-5">Форма заказа</h3>
+    <form action="{% url 'make_order' %}" method="post">
+        {% csrf_token %}
+        {{ form|crispy }}
+        <input type="submit" class="btn btn-success btn-block mb-3 mt-3" value="Оформить">
+    </form>
+{% endblock %}
