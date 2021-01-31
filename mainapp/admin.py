@@ -1,5 +1,9 @@
 from django.contrib import admin
 from django.utils.safestring import mark_safe
+
+from .model_static import RusLang, EstLang, StaticImage, Review,\
+                            Media, Portfolio, ServiceAndPrice
+
 from django.forms import ModelChoiceField, ModelForm, ValidationError
 
 from .models import *
@@ -57,12 +61,49 @@ class PhotoAdmin(admin.ModelAdmin):
 class WatermarkAdmin(admin.ModelAdmin):
 
     form = WatermarkAdminForm
-    # pass
-    # def formfield_for_foreignkey(self, db_field, request, **kwargs):
-    #     if db_field.name == 'album':
-    #         return ModelChoiceField(Album.objects.filter(slug='photos'))
-    #     return super().formfield_for_foreignkey(db_field, request, **kwargs)
 
+
+class StaticImageAdminForm(ModelForm):
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields['background'].help_text = mark_safe('<span style="color:red;">Загружайте изображения с разрешением не меньше чем {}x{}'.format(
+            *StaticImage.MIN_RESOLUTION_BACK
+        ))
+        self.fields['about'].help_text = mark_safe('<span style="color:red;">Загружайте изображения с разрешением не меньше чем {}x{}'.format(
+            *StaticImage.MIN_RESOLUTION_ABOUT
+        ))
+        self.fields['review'].help_text =mark_safe('<span style="color:red;">Загружайте изображения с разрешением не меньше чем {}x{}'.format(
+            *StaticImage.MIN_RESOLUTION_REVIEW
+        ))
+
+    def clean_background(self):
+        image = self.cleaned_data['background']
+        img = Image.open(image)
+        min_width, min_height = StaticImage.MIN_RESOLUTION_BACK
+        if img.width < min_width or img.height < min_height:
+            raise ValidationError("Загруженное изображение меньше минимального")
+        return image
+
+    def clean_about(self):
+        image = self.cleaned_data['about']
+        img = Image.open(image)
+        min_width, min_height = StaticImage.MIN_RESOLUTION_ABOUT
+        if img.width < min_width or img.height < min_height:
+            raise ValidationError("Загруженное изображение меньше минимального")
+        return image
+
+    def clean_review(self):
+        image = self.cleaned_data['review']
+        img = Image.open(image)
+        min_width, min_height = StaticImage.MIN_RESOLUTION_REVIEW
+        if img.width < min_width or img.height < min_height:
+            raise ValidationError("Загруженное изображение меньше минимального")
+        return image
+
+class StaticImageAdmin(admin.ModelAdmin):
+
+    form = StaticImageAdminForm
 
 admin.site.register(Album)
 admin.site.register(Photo, PhotoAdmin)
@@ -72,3 +113,10 @@ admin.site.register(Customer)
 admin.site.register(PhotoType)
 admin.site.register(Watermark, WatermarkAdmin)
 admin.site.register(Order)
+admin.site.register(RusLang)
+admin.site.register(EstLang)
+admin.site.register(StaticImage, StaticImageAdmin)
+admin.site.register(Review)
+admin.site.register(Media)
+admin.site.register(Portfolio)
+admin.site.register(ServiceAndPrice)

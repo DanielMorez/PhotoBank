@@ -52,6 +52,7 @@ class LatestCategories:
 
 class Album(models.Model):
     name = models.CharField(max_length=255, verbose_name='Имя категории')
+    image = models.ImageField(verbose_name='Обложка', null=True, blank=True)
     slug = models.SlugField(unique=True)
 
     def __str__(self):
@@ -64,7 +65,7 @@ class Album(models.Model):
         return albums
 
     def get_absolute_url(self):
-        return reverse('album_detail', kwargs={'slug': self.slug})
+        return reverse('album_detail', kwargs={'album_slug': self.slug})
 
 
 class PhotoType(models.Model):
@@ -192,11 +193,21 @@ class Cart(models.Model):
 
 
 class Customer(models.Model):
+
+    LANG_RUS = 'rus'
+    LANG_EST = 'est'
+
+    LANG_TYPES = (
+        (LANG_RUS, 'Русский'),
+        (LANG_EST, 'Eestlane')
+    )
+
     user = models.ForeignKey(User, null=True, blank=True, verbose_name='Пользователь', on_delete=models.CASCADE)
     phone = models.CharField(max_length=20, verbose_name='Номер телефона')
     address = models.CharField(max_length=255, verbose_name='Адрес')
     device = models.CharField(max_length=200, null=True, blank=True, verbose_name='Девайс')
     orders = models.ManyToManyField('Order', related_name='related_customer', verbose_name='Заказы покупателя')
+    lang = models.CharField(max_length=100, verbose_name='Тип заказа', choices=LANG_TYPES, default=LANG_RUS)
 
     def __str__(self):
         if self.user:
@@ -239,6 +250,7 @@ class Order(models.Model):
 
     def __str__(self):
         return str(self.id)
+
 
 
 

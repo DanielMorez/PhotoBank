@@ -1,6 +1,6 @@
 from django import forms
 
-from .models import Photo, Album, Watermark, PhotoType, Order
+from .models import Photo, Album, Watermark, PhotoType, Order, Cart
 
 
 PRODUCT_QUANTITY_CHOICES = [(i, str(i)) for i in range(1, 5)]
@@ -17,6 +17,12 @@ class PackageUploadFiles(forms.Form):
     class Meta:
         model = Photo
         fields = ['albums', 'price', 'watermarks']
+
+
+class CartForm(forms.ModelForm):
+    class Meta:
+        model = Cart
+        fields = '__all__'
 
 
 class OrderForm(forms.ModelForm):

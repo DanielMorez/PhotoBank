@@ -1,30 +1,100 @@
 {%  extends 'base.html' %}
+    {% block content %}
 
-{% block content %}
-
-    <div class="mt-3 mb-3 d-flex justify-content-center">
-        <div class="display-5">
-            {{ album.name }}
+        <div class="container" id="album">
+              <div class="row">
+                  <div class="row multi-columns-row callout-text font-alt">
+                    <ol class="breadcrumb" style="background: #ffffff;">
+                      <li class="breadcrumb-item"><a href="{{ album.get_absolute_url }}#album">{{ album.name }}</a></li>
+                      <li class="breadcrumb-item active">{{ photo_type.type_of_photo }}</li>
+                    </ol>
+                  </div>
+              </div>
         </div>
-    </div>
-    <div class="mt-3 row">
-        {% for photo in photos %}
-            <div class="col-md-4 mt-3 mb-3">
-                <div class="card" style="width: 22rem;">
-    {#                <a href="/albums/{{ album.slug }}/{{ photo_type.type_of_photo }}/{{ photo.slug }}">#}
-                    <a href="{{ photo.get_absolute_url }}">
 
-                        <img src="{{ photo.image.url }}" class="img-fluid">
-                    </a>
+        <div class="container">
+              <div class="row">
+                <div class="row multi-columns-row">
+                        <ul class="works-grid works-grid-gut works-grid-3 works-hover-w" id="works-grid">
+                            {% for photo in photos %}
 
-                    <div class="card-body">
-                        <h5 class="card-title">Цена: €{{ photo.price }}</h5>
-                        <a href="{% url 'add_to_cart' album_slug=album.slug photo_slug=photo.slug type_of_photo=photo.type_of_photo.type_of_photo%}"
-                           class="btn btn-primary">Добавит в корзину</a>
+                                <li class="work-item {{ photo.type_of_photo }}">
+
+                                  <div class="col-sm-6 col-md-4 col-lg-4">
+                                    <div class="gallery-item">
+                                      <div class="gallery-image" style='background-image: url("{{ photo.image.url }}")'>
+                                          <a class="gallery" href="{{ photo.image.url }}" title="{{ photo.title }}">
+                                              <div class="gallery-caption">
+                                                <div class="gallery-icon">
+                                                    <span class="icon-magnifying-glass"></span>
+                                                </div>
+                                              </div>
+                                          </a>
+                                      </div>
+                                    </div>
+                                      <form method="POST" id="form_{{ photo.id }}" action_url="{% if photo.id in products_id %}/remove/{% else %}/add/{% endif %}" photo_slug="{{ photo.slug }}">
+                                          {% csrf_token %}
+                                          <input name="photo_slug" type="hidden" value="{{ photo.slug }}">
+                                          <div class="text-center" style="width: 375px;">
+                                              <button class="btn btn-block btn-round btn-d" type="submit" id="btn_{{ photo.id }}">
+                                                  {% if photo.id in products_id %}Убрать из корзины{% else %}Добавить в корзину{% endif %}
+                                              </button>
+                                          </div>
+                                      </form>
+                                  </div>
+
+                                </li>
+
+                                {% block javascript %}
+
+                                <script>
+                                    {#$(document).ready(function () {#}
+                                        // catch the form's submit event
+                                        $('#form_{{ photo.id }}').submit(function (e) {
+                                            e.preventDefault();
+                                            // create an AJAX call
+                                            $.ajax({
+                                                data: $(this).serialize(), // get the form data
+                                                type: $(this).attr('method'), // GET or POST
+                                                url: $(this).attr('action_url'),
+                                                // on success
+                                                success: function (response) {
+                                                    selector = $("#btn_{{ photo.id }}")
+                                                    form = $("#form_{{ photo.id }}")
+                                                    if (form.attr('action_url') == '/add/') {
+                                                        selector.text('Убрать из корзины')
+                                                        form.attr('action_url', '/remove/')
+
+                                                    } else if (form.attr('action_url') == '/remove/') {
+                                                        form.attr('action_url', '/add/')
+                                                        selector.text('Добавить в корзину')
+                                                    }
+                                                    $("#cart").text(response.cart_counter),
+                                                    selector.attr('class', "btn btn-block btn-round btn-d"),
+                                                    selector.attr('type', "submit"),
+                                                    selector.attr('id', "btn_{{ photo.id }}"),
+                                                    alert(response.cart_counter);
+
+                                                },
+                                                // on error
+                                                error: function (response) {
+                                                    // alert the error if any error occured
+                                                    alert(response.responseJSON.errors);
+                                                    console.log(response.responseJSON.errors)
+                                                }
+                                            });
+                                            return false;
+                                        });
+
+                                </script>
+                                {% endblock javascript %}
+
+                            {% endfor %}
+
+                        </ul>
                     </div>
-                </div>
-            </div>
+              </div>
+        </div>
 
-        {% endfor %}
-    </div>
+
 {% endblock content %}

@@ -15,48 +15,149 @@
         {% endfor %}
     {% endif %}
 
-    {% if cart.products.count %}
-        <table class="table">
-          <thead>
-            <tr>
-                <th scope="col">Наимеование</th>
-                <th scope="col">Изображение</th>
-                <th scope="col">Цена</th>
-                <th scope="col">Кол-во</th>
-                <th scope="col">Общая цена</th>
-                <th></th>
-            </tr>
-          </thead>
-          <tbody>
+    <section class="module">
+        <div class="container">
+            <div class="row">
+              <div class="col-sm-6 col-sm-offset-3">
+                <h1 class="module-title font-alt">Checkout</h1>
+              </div>
+            </div>
+            <hr class="divider-w pt-20">
+            <div class="row">
+              <div class="col-sm-12">
+                <table class="table table-striped table-border checkout-table">
+                  <tbody>
+                    <tr>
+                      <th class="hidden-xs">Item</th>
+                      <th>Description</th>
+                      <th class="hidden-xs">Price</th>
+                      <th>Quantity</th>
+                      <th>Total</th>
+                      <th>Remove</th>
+                    </tr>
+                    <tr>
+                      <td class="hidden-xs"><a href="#"><img src="assets/images/shop/product-14.jpg" alt="Accessories Pack"/></a></td>
+                      <td>
+                        <h5 class="product-title font-alt">Accessories Pack</h5>
+                      </td>
+                      <td class="hidden-xs">
+                        <h5 class="product-title font-alt">£20.00</h5>
+                      </td>
+                      <td>
+                        <input class="form-control" type="number" name="" value="1" max="50" min="1"/>
+                      </td>
+                      <td>
+                        <h5 class="product-title font-alt">£20.00</h5>
+                      </td>
+                      <td class="pr-remove"><a href="#" title="Remove"><i class="fa fa-times"></i></a></td>
+                    </tr>
+                    <tr>
+                      <td class="hidden-xs"><a href="#"><img src="assets/images/shop/product-13.jpg" alt="Men’s Casual Pack"/></a></td>
+                      <td>
+                        <h5 class="product-title font-alt">Men’s Casual Pack</h5>
+                      </td>
+                      <td class="hidden-xs">
+                        <h5 class="product-title font-alt">£20.00</h5>
+                      </td>
+                      <td>
+                        <input class="form-control" type="number" name="" value="1" max="50" min="1"/>
+                      </td>
+                      <td>
+                        <h5 class="product-title font-alt">£20.00</h5>
+                      </td>
+                      <td class="pr-remove"><a href="#" title="Remove"><i class="fa fa-times"></i></a></td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+            <div class="row">
+              <div class="col-sm-3">
+                <div class="form-group">
+                  <input class="form-control" type="text" id="" name="" placeholder="Coupon code"/>
+                </div>
+              </div>
+              <div class="col-sm-3">
+                <div class="form-group">
+                  <button class="btn btn-round btn-g" type="submit">Apply</button>
+                </div>
+              </div>
+              <div class="col-sm-3 col-sm-offset-3">
+                <div class="form-group">
+                  <button class="btn btn-block btn-round btn-d pull-right" type="submit">Update Cart</button>
+                </div>
+              </div>
+            </div>
+            <hr class="divider-w">
+            <div class="row mt-70">
+              <div class="col-sm-5 col-sm-offset-7">
+                <div class="shop-Cart-totalbox">
+                  <h4 class="font-alt">Cart Totals</h4>
+                  <table class="table table-striped table-border checkout-table">
+                    <tbody>
+                      <tr>
+                        <th>Cart Subtotal :</th>
+                        <td>£40.00</td>
+                      </tr>
+                      <tr>
+                        <th>Shipping Total :</th>
+                        <td>£2.00</td>
+                      </tr>
+                      <tr class="shop-Cart-totalprice">
+                        <th>Total :</th>
+                        <td>£42.00</td>
+                      </tr>
+                    </tbody>
+                  </table>
+                  <button class="btn btn-lg btn-block btn-round btn-d" type="submit">Proceed to Checkout</button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+{#    {% if cart.products.count %}#}
+{#        <table class="table">#}
+{#          <thead>#}
+{#            <tr>#}
+{#                <th scope="col">Наимеование</th>#}
+{#                <th scope="col">Изображение</th>#}
+{#                <th scope="col">Цена</th>#}
+{#                <th scope="col">Кол-во</th>#}
+{#                <th scope="col">Общая цена</th>#}
+{#                <th></th>#}
+{#            </tr>#}
+{#          </thead>#}
+{#          <tbody>#}
 {#            {{ request.user }}#}
 {#            {{ cart.products.all }}#}
-            {% for item in cart.products.all %}
-            <tr>
-              <th scope="row">{{ item.content_object.title }}</th>
-                <td><a href="{{ item.content_object.image.url }}">Ссылка на изображени</a></td>
-              <td>€ {{ item.content_object.price }}</td>
-                <td>
-                    <form method="post" action="{% url 'change_qty' photo_slug=item.content_object.slug %}">
-                        {% csrf_token %}
-                        <input class="form-control" name="qty" min="1" type="number" value="{{ item.qty }}">
-                        <input type="submit" class="btn btn-primary" value="Изменить">
-                    </form>
-                </td>
-            <td>{{ item.final_price }}</td>
-            <td>
-                <a href="{% url 'remove_from_cart' album_slug=item.content_object.album.slug type_of_photo=item.content_object.type_of_photo.type_of_photo photo_slug=item.content_object.slug  %}"
-                    class="btn btn-danger">Убрать товар</a>
-            </td>
-            </tr>
-          {% endfor %}
-          <tr>
-              <td colspan="2"></td>
-              <td>Итог</td>
-              <td>{{ cart.total_products }}</td>
-              <td><strong>€{{ cart.final_price }}</strong></td>
-              <td><a href="{% url 'checkout' %}" class="btn btn-primary">Оформить заказ</a></td>
-          </tr>
-          </tbody>
-    </table>
-{% endif %}
+{#            {% for item in cart.products.all %}#}
+{#            <tr>#}
+{#              <th scope="row">{{ item.content_object.title }}</th>#}
+{#                <td><a href="{{ item.content_object.image.url }}">Ссылка на изображени</a></td>#}
+{#              <td>€ {{ item.content_object.price }}</td>#}
+{#                <td>#}
+{#                    <form method="post" action="{% url 'change_qty' photo_slug=item.content_object.slug %}">#}
+{#                        {% csrf_token %}#}
+{#                        <input class="form-control" name="qty" min="1" type="number" value="{{ item.qty }}">#}
+{#                        <input type="submit" class="btn btn-primary" value="Изменить">#}
+{#                    </form>#}
+{#                </td>#}
+{#            <td>{{ item.final_price }}</td>#}
+{#            <td>#}
+{#                <a href="{% url 'remove_from_cart' album_slug=item.content_object.album.slug type_of_photo=item.content_object.type_of_photo.type_of_photo photo_slug=item.content_object.slug  %}"#}
+{#                    class="btn btn-danger">Убрать товар</a>#}
+{#            </td>#}
+{#            </tr>#}
+{#          {% endfor %}#}
+{#          <tr>#}
+{#              <td colspan="2"></td>#}
+{#              <td>Итог</td>#}
+{#              <td>{{ cart.total_products }}</td>#}
+{#              <td><strong>€{{ cart.final_price }}</strong></td>#}
+{#              <td><a href="{% url 'checkout' %}" class="btn btn-primary">Оформить заказ</a></td>#}
+{#          </tr>#}
+{#          </tbody>#}
+{#    </table>#}
+{#{% endif %}#}
 {% endblock %}
