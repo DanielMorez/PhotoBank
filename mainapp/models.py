@@ -1,5 +1,6 @@
-import sys
+import sys, os
 
+from photoBank.settings import MEDIA_URL
 from PIL import Image
 
 from django.utils import timezone
@@ -33,27 +34,24 @@ def get_product_url(obj, viewname):
         'photo_slug': obj.slug
     })
 
+def get_upload_to(instance, filename):
+    return f'{instance.album.slug}/{filename}'
 
-
-class LatestCategoriesManager:
-
-
-    def get_queryset(self):
-        return super().get_queryset()
-
-    def get_albums_for_left_side(self):
-        products = Album.objects.all().reverse()[:5]
-        return products
-
-
-class LatestCategories:
-    objects = LatestCategoriesManager
-
+def get_origin_upload_to(instance, filename):
+    return f'orig/{instance.album.slug}/{filename}'
 
 class Album(models.Model):
     name = models.CharField(max_length=255, verbose_name='Имя категории')
     image = models.ImageField(verbose_name='Обложка', null=True, blank=True)
     slug = models.SlugField(unique=True)
+
+    def delete(self, *args, **kwargs):
+        # You have to prepare what you need before delete the model
+        storage, path = self.image.storage, self.image.path
+        # Delete the model before the file
+        super(Album, self).delete(*args, **kwargs)
+        # Delete the file after the model
+        storage.delete(path)
 
     def __str__(self):
         return self.name
@@ -77,7 +75,7 @@ class PhotoType(models.Model):
 
 class Product(models.Model):
     MIN_RESOLUTION = (500, 500)
-    MAX_RESOLUTION = (2400, 4200)
+    MAX_RESOLUTION = (5400, 5200)
     MAX_IMG_SIZE = 10485760
 
     class Meta:
@@ -86,8 +84,9 @@ class Product(models.Model):
     album = models.ForeignKey(Album, verbose_name='Альбом', on_delete=models.CASCADE)
     title = models.CharField(max_length=255, verbose_name='Имя фотографии')
     slug = models.SlugField(unique=True, default=0)
-    image = models.ImageField()
+    image = models.ImageField(upload_to=get_upload_to, verbose_name='Фотография с водянным знаком')
     price = models.DecimalField(max_digits=9, decimal_places=2, verbose_name='Цена')
+    selling_image = models.ImageField(upload_to=get_origin_upload_to, verbose_name='Фотография без водяного знака', null=True, blank=True)
 
     def __str__(self):
         return self.title
@@ -112,6 +111,7 @@ class Product(models.Model):
 
 
 class Photo(Product):
+
     type_of_photo = models.ForeignKey(PhotoType, verbose_name='Тип фотографии', on_delete=models.CASCADE)
     watermark = models.ForeignKey("Watermark", verbose_name='Водяной знак', null=True, on_delete=models.CASCADE)
 
@@ -121,9 +121,20 @@ class Photo(Product):
     def get_absolute_url(self):
         return get_product_url(self, 'product_detail')
 
+    def delete(self, *args, **kwargs):
+        # You have to prepare what you need before delete the model
+        storage, path = self.image.storage, self.image.path
+        selling_storage, selling_path = self.selling_image.storage, self.selling_image.path
+        # Delete the model before the file
+        super(Photo, self).delete(*args, **kwargs)
+        # Delete the file after the model
+        storage.delete(path)
+        selling_storage.delete(selling_path)
+
     def save(self, *args, **kwargs):
         self.slug_save()
         image = self.image
+        self.selling_image = self.image
         wm = self.watermark.image
 
         base_image = Image.open(image)
@@ -140,8 +151,16 @@ class Photo(Product):
         filestream = BytesIO()
         transparent.save(filestream, 'PNG')
         filestream.seek(0)
+
+        try:
+            format = image.path.split('.')[-1]
+        except:
+            format = 'png'
+
+        title = image.path.split('/')[-1]
+
         self.image = InMemoryUploadedFile(
-            filestream, 'ImageField', f'{self.title}', f'{self.title.split(".")[-1]}/image', sys.getsizeof(filestream),
+            filestream, 'ImageField', f'{title}', f'{format}/image', sys.getsizeof(filestream),
             None
         )
         super().save(*args, **kwargs)
@@ -151,12 +170,19 @@ class Watermark(models.Model):
 
     MAX_RESOLUTION = (500, 500)
     MIN_RESOLUTION = (100, 100)
-    MAX_IMG_SIZE = 1048570
     title = models.CharField(max_length=255, verbose_name='Имя водного знака')
-    image = models.ImageField()
+    image = models.ImageField(upload_to='watermarks')
 
     def __str__(self):
         return f'Водяной знак: {self.title}'
+
+    def delete(self, *args, **kwargs):
+        # You have to prepare what you need before delete the model
+        storage, path = self.image.storage, self.image.path
+        # Delete the model before the file
+        super(Watermark, self).delete(*args, **kwargs)
+        # Delete the file after the model
+        storage.delete(path)
 
 
 class CartProduct(models.Model):
@@ -171,6 +197,7 @@ class CartProduct(models.Model):
     def __str__(self):
         if self.content_object:
             return f'Продукт: {self.content_object.title} (для корзины)'
+        self.delete()
         return f'Продукт уже удален'
 
     def save(self, *args, **kwargs):
@@ -241,7 +268,7 @@ class Order(models.Model):
     last_name = models.CharField(max_length=255, verbose_name='Фамилия')
     phone = models.CharField(max_length=20, verbose_name='Телефон')
     cart = models.ForeignKey(Cart, verbose_name='Корзина', on_delete=models.CASCADE, null=True, blank=True)
-    address = models.CharField(max_length=1024, verbose_name='Адрес', null=True, blank=True)
+    email = models.CharField(max_length=1024, verbose_name='Email', null=True, blank=True)
     status = models.CharField(max_length=100, verbose_name='Статус заказа', choices=STATUS_CHOICES, default=STATUS_NEW)
     buying_type = models.CharField(max_length=100, verbose_name='Тип заказа', choices=BUYING_TYPE_CHOICES, default=BUYING_TYPE_SELF)
     comment = models.TextField(verbose_name='Комментарий к закаказу', null=True, blank=True)

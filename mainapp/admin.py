@@ -2,9 +2,10 @@ from django.contrib import admin
 from django.utils.safestring import mark_safe
 
 from .model_static import RusLang, EstLang, StaticImage, Review,\
-                            Media, Portfolio, ServiceAndPrice
+                            Media, Portfolio, ServiceAndPrice, \
+                            EmailCredentials, ContactInfo
 
-from django.forms import ModelChoiceField, ModelForm, ValidationError
+from django.forms import ModelForm, ValidationError
 
 from .models import *
 
@@ -28,8 +29,6 @@ class PhotoAdminForm(ModelForm):
             raise ValidationError("Загруженное изображение меньше минимального")
         if img.width > max_width or img.height > max_height:
             raise ValidationError("Загруженное изображение больше максимального")
-        if image.size > Product.MAX_IMG_SIZE:
-            raise ValidationError(f"Загруженное изображение больше {self.MAX_IMG_SIZE} Bytes")
         return image
 
 class WatermarkAdminForm(ModelForm):
@@ -120,3 +119,5 @@ admin.site.register(Review)
 admin.site.register(Media)
 admin.site.register(Portfolio)
 admin.site.register(ServiceAndPrice)
+admin.site.register(EmailCredentials)
+admin.site.register(ContactInfo)

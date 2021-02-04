@@ -1,7 +1,6 @@
 {% extends 'base.html' %}
 
 {% block content %}
-    <h3 class="text-center mt-5 mb-5">Ваша корзина {% if not cart.products.count %} пуста {% endif %}</h3>
 
     {% if messages %}
         {% for message in messages %}
@@ -16,148 +15,170 @@
     {% endif %}
 
     <section class="module">
-        <div class="container">
+        <div class="container" style="margin-top: -250px">
+
+            {% if album %}
+            <div class="container" id="album">
+                      <div class="row">
+                          <div class="row multi-columns-row callout-text font-alt">
+                            <ol class="breadcrumb" style="background: #ffffff;">
+                              <li class="breadcrumb-item"><a href="{{ album.get_absolute_url }}#album">{{ album.name }}</a></li>
+                                    <li class="breadcrumb-item active"><a class="section-scroll" href="#cart_total">Корзина</a></li>
+                            </ol>
+                          </div>
+                      </div>
+                </div>
+            {% endif %}
+
+            <div class="row multi-columns-row">
+                <ul class="works-grid works-grid-gut works-grid-3 works-hover-w" id="works-grid">
+                    {%  for item in cart.related_products.all  %}
+
+                        <li class="work-item" id="item_{{ item.id }}">
+
+                          <div class="col-sm-6 col-md-4 col-lg-4">
+                            <div class="gallery-item" id="photo_{{ item.content_object.id }}">
+                              <div class="gallery-image" style='background-image: url("{{ item.content_object.image.url }}")'>
+                                  <a class="gallery" href="{{ item.content_object.image.url }}" title="{{ item.content_object.title }}">
+                                      <div class="gallery-caption">
+                                        <div class="gallery-icon"><span class="icon-magnifying-glass"></span></div>
+                                      </div>
+                                  </a>
+                              </div>
+                            </div>
+                          </div>
+
+                        </li>
+                    {% endfor %}
+                </ul>
+            </div>
+
             <div class="row">
               <div class="col-sm-6 col-sm-offset-3">
-                <h1 class="module-title font-alt">Checkout</h1>
+                <h1 class="module-title font-alt mb-0">Ваша корзина {% if not cart.products.count %} пуста {% endif %}</h1>
               </div>
             </div>
+            {% if cart_counter %}
             <hr class="divider-w pt-20">
-            <div class="row">
+            <div class="row" id="cart_total">
               <div class="col-sm-12">
                 <table class="table table-striped table-border checkout-table">
                   <tbody>
                     <tr>
-                      <th class="hidden-xs">Item</th>
-                      <th>Description</th>
-                      <th class="hidden-xs">Price</th>
-                      <th>Quantity</th>
-                      <th>Total</th>
-                      <th>Remove</th>
+                      <th class="hidden-xs">ID</th>
+                      <th>Название</th>
+                      <th>Формат</th>
+                      <th class="hidden-xs">Цена</th>
+                      <th>Количество</th>
+                      <th>Общая цена</th>
+                      <th>Убрать</th>
                     </tr>
-                    <tr>
-                      <td class="hidden-xs"><a href="#"><img src="assets/images/shop/product-14.jpg" alt="Accessories Pack"/></a></td>
+
+                    {% for item in cart.related_products.all %}
+                    <tr id="row_{{ item.id }}">
+                      <td class="hidden-xs">
+                          <a href="#photo_{{ item.content_object.id }}">{{ item.content_object.id  }}</a>
+                      </td>
+                        <td>
+                            <h5 class="product-title font-alt">
+                                <a href="#photo_{{ item.content_object.id }}">{{ item.content_object.title  }}</a>
+                            </h5>
+                      </td>
                       <td>
-                        <h5 class="product-title font-alt">Accessories Pack</h5>
+                        <h5 class="product-title font-alt">Цифровой</h5>
                       </td>
                       <td class="hidden-xs">
-                        <h5 class="product-title font-alt">£20.00</h5>
+                        <h5 class="product-title font-alt">€ {{ item.content_object.price }}</h5>
                       </td>
                       <td>
-                        <input class="form-control" type="number" name="" value="1" max="50" min="1"/>
+                        <input class="form-control" type="number" name="" value="{{ item.qty }}" max="50" min="1" readonly/>
                       </td>
                       <td>
-                        <h5 class="product-title font-alt">£20.00</h5>
+                        <h5 class="product-title font-alt">€ {{ item.final_price }}</h5>
                       </td>
-                      <td class="pr-remove"><a href="#" title="Remove"><i class="fa fa-times"></i></a></td>
+                      <td class="pr-remove">
+                          <form method="POST" id="form_{{ item.id }}" action_url="/remove/" photo_slug="{{ item.content_object.slug }}">
+                              {% csrf_token %}
+                              <input name="photo_slug" type="hidden" value="{{ item.content_object.slug }}">
+                              <button type="submit" id="btn_{{ item.id }}" style="outline: none;border: 0;background-color: transparent;">
+                                  <i class="fa fa-times"></i>
+                              </button>
+                          </form>
+                      </td>
                     </tr>
-                    <tr>
-                      <td class="hidden-xs"><a href="#"><img src="assets/images/shop/product-13.jpg" alt="Men’s Casual Pack"/></a></td>
-                      <td>
-                        <h5 class="product-title font-alt">Men’s Casual Pack</h5>
-                      </td>
-                      <td class="hidden-xs">
-                        <h5 class="product-title font-alt">£20.00</h5>
-                      </td>
-                      <td>
-                        <input class="form-control" type="number" name="" value="1" max="50" min="1"/>
-                      </td>
-                      <td>
-                        <h5 class="product-title font-alt">£20.00</h5>
-                      </td>
-                      <td class="pr-remove"><a href="#" title="Remove"><i class="fa fa-times"></i></a></td>
-                    </tr>
+
+                        {% block javascript %}
+
+                                <script>
+                                    {#$(document).ready(function () {#}
+                                        // catch the form's submit event
+                                        $('#form_{{ item.id }}').submit(function (e) {
+                                            e.preventDefault();
+                                            // create an AJAX call
+                                            $.ajax({
+                                                data: $(this).serialize(), // get the form data
+                                                type: $(this).attr('method'), // GET or POST
+                                                url: $(this).attr('action_url'),
+                                                // on success
+                                                success: function (response) {
+                                                    $("#cart").text(response.cart_counter)
+                                                    selector = $("#row_{{ item.id }}")
+                                                    selector.remove()
+                                                    item = $("#item_{{ item.id }}")
+                                                    item.remove()
+                                                    final = $("#final_price")
+                                                    final.text(response.final_price)
+                                                    final = $("#total")
+                                                    final.text(response.final_price);
+                                                },
+                                                // on error
+                                                error: function (response) {
+                                                    // alert the error if any error occured
+                                                    alert(response.responseJSON.errors);
+                                                    console.log(response.responseJSON.errors)
+                                                }
+                                            });
+                                            return false;
+                                        });
+
+                                </script>
+                                {% endblock javascript %}
+
+                    {% endfor %}
                   </tbody>
                 </table>
               </div>
             </div>
-            <div class="row">
-              <div class="col-sm-3">
-                <div class="form-group">
-                  <input class="form-control" type="text" id="" name="" placeholder="Coupon code"/>
-                </div>
-              </div>
-              <div class="col-sm-3">
-                <div class="form-group">
-                  <button class="btn btn-round btn-g" type="submit">Apply</button>
-                </div>
-              </div>
-              <div class="col-sm-3 col-sm-offset-3">
-                <div class="form-group">
-                  <button class="btn btn-block btn-round btn-d pull-right" type="submit">Update Cart</button>
-                </div>
-              </div>
-            </div>
+        {% endif %}
+
+        {% if cart_counter %}
             <hr class="divider-w">
             <div class="row mt-70">
               <div class="col-sm-5 col-sm-offset-7">
                 <div class="shop-Cart-totalbox">
-                  <h4 class="font-alt">Cart Totals</h4>
+                  <h4 class="font-alt">Итоги</h4>
                   <table class="table table-striped table-border checkout-table">
                     <tbody>
                       <tr>
-                        <th>Cart Subtotal :</th>
-                        <td>£40.00</td>
+                        <th>Общая стоимость :</th>
+                          <td>€ <strong id="final_price">{{ cart.final_price }}</strong></td>
                       </tr>
                       <tr>
-                        <th>Shipping Total :</th>
-                        <td>£2.00</td>
+                        <th>Доставка :</th>
+                        <td>€ 0</td>
                       </tr>
                       <tr class="shop-Cart-totalprice">
-                        <th>Total :</th>
-                        <td>£42.00</td>
+                        <th>Итог :</th>
+                        <td>€ <strong id="total">{{ cart.final_price }}</strong></td>
                       </tr>
                     </tbody>
                   </table>
-                  <button class="btn btn-lg btn-block btn-round btn-d" type="submit">Proceed to Checkout</button>
+                  <a href="{% url 'checkout' %}" class="btn btn-lg btn-block btn-round btn-d">Продолжить оформление</a>
                 </div>
               </div>
             </div>
+        {% endif %}
           </div>
         </section>
 
-{#    {% if cart.products.count %}#}
-{#        <table class="table">#}
-{#          <thead>#}
-{#            <tr>#}
-{#                <th scope="col">Наимеование</th>#}
-{#                <th scope="col">Изображение</th>#}
-{#                <th scope="col">Цена</th>#}
-{#                <th scope="col">Кол-во</th>#}
-{#                <th scope="col">Общая цена</th>#}
-{#                <th></th>#}
-{#            </tr>#}
-{#          </thead>#}
-{#          <tbody>#}
-{#            {{ request.user }}#}
-{#            {{ cart.products.all }}#}
-{#            {% for item in cart.products.all %}#}
-{#            <tr>#}
-{#              <th scope="row">{{ item.content_object.title }}</th>#}
-{#                <td><a href="{{ item.content_object.image.url }}">Ссылка на изображени</a></td>#}
-{#              <td>€ {{ item.content_object.price }}</td>#}
-{#                <td>#}
-{#                    <form method="post" action="{% url 'change_qty' photo_slug=item.content_object.slug %}">#}
-{#                        {% csrf_token %}#}
-{#                        <input class="form-control" name="qty" min="1" type="number" value="{{ item.qty }}">#}
-{#                        <input type="submit" class="btn btn-primary" value="Изменить">#}
-{#                    </form>#}
-{#                </td>#}
-{#            <td>{{ item.final_price }}</td>#}
-{#            <td>#}
-{#                <a href="{% url 'remove_from_cart' album_slug=item.content_object.album.slug type_of_photo=item.content_object.type_of_photo.type_of_photo photo_slug=item.content_object.slug  %}"#}
-{#                    class="btn btn-danger">Убрать товар</a>#}
-{#            </td>#}
-{#            </tr>#}
-{#          {% endfor %}#}
-{#          <tr>#}
-{#              <td colspan="2"></td>#}
-{#              <td>Итог</td>#}
-{#              <td>{{ cart.total_products }}</td>#}
-{#              <td><strong>€{{ cart.final_price }}</strong></td>#}
-{#              <td><a href="{% url 'checkout' %}" class="btn btn-primary">Оформить заказ</a></td>#}
-{#          </tr>#}
-{#          </tbody>#}
-{#    </table>#}
-{#{% endif %}#}
 {% endblock %}

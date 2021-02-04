@@ -1,9 +1,15 @@
 from django.views.generic.detail import SingleObjectMixin
-from django.views.generic import TemplateView
+from django.views.generic import View
 
+from .model_static import RusLang, EstLang, StaticImage
 from .models import Album, Photo, PhotoType, Cart, Customer
 
-class LanguageMixin(TemplateView):
+class LanguageMixin(View):
+
+    lang_models = {
+        'rus': RusLang,
+        'est': EstLang
+    }
 
     def dispatch(self, request, *args, **kwargs):
         try:
@@ -14,12 +20,27 @@ class LanguageMixin(TemplateView):
             device = request.session.session_key
             self.customer, created = Customer.objects.get_or_create(device=device)
 
+        try:
+            self.images = StaticImage.objects.last()
+        except:
+            self.images = None
+
+        self.lang_model = self.lang_models.get(self.customer.lang)
+        if self.lang_model:
+            if self.lang_model.objects.count():
+                self.lang_model = self.lang_model.objects.last();
+
         return super().dispatch(request, *args, **kwargs)
 
 
-class CartMixin(TemplateView):
+class CartMixin(View):
 
     def dispatch(self, request, *args, **kwargs):
+
+        self.album = None
+        self.type_of_photo = None
+        self.products_id = None
+
         try:
             self.customer = Customer.objects.get(user=request.user)
         except:
@@ -28,20 +49,14 @@ class CartMixin(TemplateView):
             device = request.session.session_key
             self.customer, created = Customer.objects.get_or_create(device=device)
 
-        self.cart, created = Cart.objects.get_or_create(owner=self.customer)
-        self.products_id = [item.content_object.id for item in self.cart.related_products.all()]
+        if kwargs.get('album_slug'):
+            self.album = Album.objects.get(slug=kwargs['album_slug'])
+        if kwargs.get('type_of_photo'):
+            self.type_of_photo = PhotoType.objects.get(type_of_photo=kwargs['type_of_photo'])
+
+        self.cart, created = Cart.objects.get_or_create(owner=self.customer, in_order=False)
+        if not self.album and self.cart.products.count():
+            self.album = self.cart.products.last().content_object.album
+            self.products_id = [item.content_object.id for item in self.cart.related_products.all()]
         return super().dispatch(request, *args, **kwargs)
 
-class AlbumsDetailMixin(SingleObjectMixin):
-
-    def get_context_data(self, **kwargs):
-        context = super().get_context_data(**kwargs)
-        context['albums'] = Album.objects.all()
-        if self.kwargs.get('type_of_photo'):
-            print(self.kwargs['type_of_photo'])
-            album = Album.objects.get(slug=self.kwargs['album_slug'])
-            photo_type = PhotoType.objects.get(type_of_photo=self.kwargs['type_of_photo'])
-            context['photo_type'] = photo_type
-            context['photos'] = Photo.objects.filter(album=album, type_of_photo=photo_type)
-
-        return context

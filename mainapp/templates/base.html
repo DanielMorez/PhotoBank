@@ -71,15 +71,15 @@
           <div class="collapse navbar-collapse" id="custom-collapse">
             <ul class="nav navbar-nav navbar-right">
                 <li>{% if cart %}<a href="/cart/">Корзина <strong id="cart">{{ cart_counter }}</strong></a>{% endif %}</li>
-                <li><a href="#service">{% if lang == 'rus' %}Услуги{% else %}teenused{% endif %}</a></li>
-                <li><a href="#portfolio">{% if lang == 'rus' %}Портфолио{% else %}Portfell{% endif %}</a></li>
+                <li><a class="section-scroll" href="#service">{% if lang == 'rus' %}Услуги{% else %}teenused{% endif %}</a></li>
+                <li><a class="section-scroll" href="#portfolio">{% if lang == 'rus' %}Портфолио{% else %}Portfell{% endif %}</a></li>
 
                 <li class="dropdown"><a class="dropdown-toggle" href="#" data-toggle="dropdown">Q&A</a>
                 <ul class="dropdown-menu">
-                  <li><a href="#about">{% if lang == 'rus' %}О нас{% else %}Meist{% endif %}</a></li>
-                  <li><a href="#">{% if lang == 'rus' %}Наш опыт{% else %}Meie kogemus{% endif %}</a></li>
-                  <li><a href="#">{% if lang == 'rus' %}Часто задаваемые вопросы{% else %}Korduma kippuvad küsimused{% endif %}</a></li>
-                  <li><a href="#">{% if lang == 'rus' %}Контакты{% else %}Kontaktid{% endif %}</a></li>
+                  <li><a class="section-scroll" href="#about">{% if lang == 'rus' %}О нас{% else %}Meist{% endif %}</a></li>
+{#                  <li><a class="section-scroll" href="#skill">{% if lang == 'rus' %}Наш опыт{% else %}Meie kogemus{% endif %}</a></li>#}
+                  <li><a class="section-scroll" href="#qna">{% if lang == 'rus' %}Часто задаваемые вопросы{% else %}Korduma kippuvad küsimused{% endif %}</a></li>
+                  <li><a class="section-scroll" href="#contact">{% if lang == 'rus' %}Контакты{% else %}Kontaktid{% endif %}</a></li>
                 </ul>
                 </li>
                 <li></li>
@@ -94,20 +94,25 @@
 
 
       <section class="home-section home-parallax home-fade home-full-height bg-dark-60 agency-page-header" id="home" data-background="
-            {% if lang_dict.home_section_up %}
+            {% if not album.image %}
                 {% if images %}{{ images.background.url }}{% else %}{% static 'assets/images/agency/agency_bg.jpg' %}{% endif %}
             {% else %}
                 {{ album.image.url }}
             {% endif %}">
         <div class="titan-caption">
           <div class="caption-content">
-          {% if lang_dict.home_section_up %}
+          {% if not album %}
             <div class="font-alt mb-30 titan-title-size-1">{{ lang_dict.home_section_up }}</div>
             <div class="font-alt mb-40 titan-title-size-3">{{ lang_dict.home_section_first_part }} <span class="rotate">{{ lang_dict.home_section_second_part }}</span>
             </div><a class="section-scroll btn btn-border-w btn-circle" href="#about">{% if lang == 'rus' %}Узнать больше{% else %}Lisateabe saamiseks{% endif %}</a>
           {% else %}
               <div class="font-alt mb-40 titan-title-size-3">{{ album.name }}</div>
-              <a class="section-scroll btn btn-border-w btn-circle" href="#album">Перейти к альбому</a>
+              <a class="section-scroll btn btn-border-w btn-circle" href="#album">
+                    {% if request.resolver_match.view_name == 'cart' %}
+                        Перейти к корзине
+                  {% elif request.resolver_match.view_name == 'checkout' %}
+                      Оформить заказ
+                  {% else %}Перейти к альбому{% endif %}</a>
           {% endif %}
           </div>
         </div>
@@ -164,7 +169,7 @@
         </section>
         <section class="module pb-0" id="works">
           <div class="container">
-            <div class="row">
+            <div class="row" id="portfolio">
               <div class="col-sm-6 col-sm-offset-3">
                 <h2 class="module-title font-alt">{% if lang == 'rus' %}Портфолио{% else %}Portfell{% endif %}</h2>
                 <div class="module-subtitle font-serif"></div>
@@ -228,7 +233,7 @@
         <hr class="divider-w">
         <section class="module">
           <div class="container">
-            <div class="row">
+            <div class="row" id="qna">
               <div class="col-sm-12">
                 <h4 class="font-alt mb-30">{% if lang == 'rus' %}Часто задаваемые вопросы{% else %}Korduma kippuvad küsimused{% endif %}</h4>
                 <div class="panel-group" id="accordion">
@@ -313,7 +318,7 @@
 
         <section class="module">
           <div class="container">
-              <div class="row">
+              <div class="row" id="service">
                   <div class="col-sm-6 col-sm-offset-3">
                     <h2 class="module-title font-alt">{% if lang == 'rus' %}Цены и услуги{% else %}Hinnad ja teenused{% endif %}</h2>
                     <div class="module-subtitle font-serif"></div>
@@ -370,19 +375,19 @@
             </div>
             <div class="row">
               <div class="col-sm-8">
-                <form id="contactForm" role="form" method="post" action="php/contact.php">
+                <form id="contactForm" role="form" method="post" action="">
                   <div class="form-group">
                     <label class="sr-only" for="name">Name</label>
-                    <input class="form-control" type="text" id="name" name="name" placeholder="Your Name*" required="required" data-validation-required-message="Please enter your name."/>
+                    <input class="form-control" type="text" id="name" name="name" placeholder="Ваше имя" required="required" data-validation-required-message="Пожалуйста, введите своё имя"/>
                     <p class="help-block text-danger"></p>
                   </div>
                   <div class="form-group">
                     <label class="sr-only" for="email">Email</label>
-                    <input class="form-control" type="email" id="email" name="email" placeholder="Your Email*" required="required" data-validation-required-message="Please enter your email address."/>
+                    <input class="form-control" type="email" id="email" name="email" placeholder="Ваш Email" required="required" data-validation-required-message="Пожалуйста, введите свой email"/>
                     <p class="help-block text-danger"></p>
                   </div>
                   <div class="form-group">
-                    <textarea class="form-control" rows="7" id="message" name="message" placeholder="Your Message*" required="required" data-validation-required-message="Please enter your message."></textarea>
+                    <textarea class="form-control" rows="7" id="message" name="message" placeholder="Задайте вопрос?" required="required" data-validation-required-message="Пожалуйста, введите сообщение"></textarea>
                     <p class="help-block text-danger"></p>
                   </div>
                   <div class="text-center">
@@ -394,11 +399,11 @@
               <div class="col-sm-4">
                 <div class="alt-features-item mt-0">
                   <div class="alt-features-icon"><span class="icon-megaphone"></span></div>
-                  <h3 class="alt-features-title font-alt">{% if lang == 'rus' %}Встретиться с нами{% else %}Tutvuge meiega{% endif %}</h3>Titan Company<br/>23 Greate Street<br/>Los Angeles, 12345 LS
+                  <h3 class="alt-features-title font-alt">{% if lang == 'rus' %}Встретиться с нами{% else %}Tutvuge meiega{% endif %}</h3>{{ contact.company }}<br/>{{ contact.address }}<br/>{{ contact.city }}, {{ contact.zip }}
                 </div>
                 <div class="alt-features-item mt-xs-60">
                   <div class="alt-features-icon"><span class="icon-map"></span></div>
-                  <h3 class="alt-features-title font-alt">{% if lang == 'rus' %}Написать нам{% else %}Kirjuta meile{% endif %}</h3>Email: somecompany@example.com<br/>Phone: +1 234 567 89 10
+                  <h3 class="alt-features-title font-alt">{% if lang == 'rus' %}Написать нам{% else %}Kirjuta meile{% endif %}</h3>Email: {{ contact.email }}<br/>Телефон: {{ contact.phone }}
                 </div>
               </div>
             </div>

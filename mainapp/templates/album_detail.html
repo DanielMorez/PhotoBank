@@ -1,15 +1,47 @@
 {%  extends 'base.html' %}
     {% block content %}
 
-        <div class="container" id="album">
-              <div class="row multi-columns-row callout-text font-alt">
+
+
+        <div class="container" id="album" style="margin-top: -120px">
+
+            {% if request.user.is_authenticated %}
+
+                <div class="row">
+                    <div class="col-sm-8">
+                        <button onclick="copyToClipboard('#absolute_url')" id="absolute_url" class="btn btn-border-d btn-circle btn-block">{{ absolute_url }}</button>
+                    </div>
+                    <div class="col-sm-4">
+                        <form method="POST">
+                            {% csrf_token %}
+                            <button class="btn btn-border-d btn-circle btn-block" type="submit">Изменить slug</button>
+                        </form>
+                    </div>
+                </div>
+
+            {% block javascript %}
+
+                <script>
+                    function copyToClipboard(element) {
+                          var $temp = $("<input>");
+                          $("body").append($temp);
+                          $temp.val($(element).text()).select();
+                          document.execCommand("copy");
+                          $temp.remove();
+                          alert('Ссылка на альбом скопирована')
+                        }
+                </script>
+
+            {% endblock %}
+
+        {% endif %}
+
+            <div class="row multi-columns-row callout-text font-alt">
                 <ol class="breadcrumb" style="background: #ffffff;">
                   <li class="breadcrumb-item active">{{ album.name }}</li>
                 </ol>
               </div>
-        </div>
 
-        <div class="container">
             <div class="row">
             <ul class="works-grid works-grid-gut works-grid-3 works-hover-d" id="works-grid">
                     {% for type, post in photo_types %}

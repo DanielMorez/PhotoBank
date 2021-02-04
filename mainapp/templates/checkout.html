@@ -2,57 +2,160 @@
 {% load crispy_forms_tags %}
 {% csrf_token %}
 {% block content %}
-    {% if cart.products.count %}
-        <h3 class="text-center mt-5 mb-5">Оформление заказа</h3>
-        <table class="table">
-          <thead>
-            <tr>
-                <th scope="col">Наимеование</th>
-                <th scope="col">Изображение</th>
-                <th scope="col">Цена</th>
-                <th scope="col">Кол-во</th>
-                <th scope="col">Общая цена</th>
-            </tr>
-          </thead>
-          <tbody>
-{#            {{ request.user }}#}
-{#            {{ cart.products.all }}#}
-            {% for item in cart.products.all %}
-            <tr>
-              <th scope="row">{{ item.content_object.title }}</th>
-                <td><a href="{{ item.content_object.image.url }}">Ссылка на изображени</a></td>
-              <td>€ {{ item.content_object.price }}</td>
-                <td>{{ item.qty }}</td>
-            <td>{{ item.final_price }}</td>
-            </tr>
-          {% endfor %}
-          <tr>
-              <td colspan="2"></td>
-              <td>Итог</td>
-              <td>{{ cart.total_products }}</td>
-              <td><strong>€{{ cart.final_price }}</strong></td>
-          </tr>
-              </tbody>
-        </table>
-    {% endif %}
 
-    <hr>
-    {% if messages %}
-        {% for message in messages %}
-            <div class="alert alert-info alert-dismissible fade show" role="alert">
-                <strong>{{ message }}</strong>
-                <a href="#" class="close" data-dismiss="alert" aria-label="Close">
-                    <span aria-hidden="true">&times;</span>
-                </a>
+    {% if cart.products.count %}
+        <section class="module" style="margin-top: -250px;">
+        <div class="container">
+        {% if album %}
+            <div class="container" id="album">
+                      <div class="row">
+                          <div class="row multi-columns-row callout-text font-alt">
+                            <ol class="breadcrumb" style="background: #ffffff;">
+                              <li class="breadcrumb-item"><a href="{{ album.get_absolute_url }}#album">{{ album.name }}</a></li>
+                              <li class="breadcrumb-item"><a href="{% url 'cart' %}#album">Корзина</a></li>
+                                <li class="breadcrumb-item active"><a href="#order" class="section-scroll">Оформление заказа</a></li>
+                            </ol>
+                          </div>
+                      </div>
+                </div>
+            {% endif %}
+
+            <div class="row multi-columns-row">
+                <ul class="works-grid works-grid-gut works-grid-3 works-hover-w" id="works-grid">
+                    {%  for item in cart.related_products.all  %}
+
+                        <li class="work-item" id="item_{{ item.id }}">
+
+                          <div class="col-sm-6 col-md-4 col-lg-4">
+                            <div class="gallery-item" id="photo_{{ item.content_object.id }}">
+                              <div class="gallery-image" style='background-image: url("{{ item.content_object.image.url }}")'>
+                                  <a class="gallery" href="{{ item.content_object.image.url }}" title="{{ item.content_object.title }}">
+                                      <div class="gallery-caption">
+                                        <div class="gallery-icon"><span class="icon-magnifying-glass"></span></div>
+                                      </div>
+                                  </a>
+                              </div>
+                            </div>
+                          </div>
+
+                        </li>
+                    {% endfor %}
+                </ul>
             </div>
 
+            <div class="row" id="album">
+              <div class="col-sm-6 col-sm-offset-3">
+                <h1 class="module-title font-alt mb-0">Оформление заказа</h1>
+              </div>
+            </div>
+            <hr class="divider-w pt-20">
+            <div class="row">
+              <div class="col-sm-12">
+                <table class="table table-striped table-border checkout-table">
+                  <tbody>
+                    <tr>
+                      <th class="hidden-xs">ID</th>
+                      <th>Название</th>
+                      <th>Формат</th>
+                      <th class="hidden-xs">Цена</th>
+                      <th>Количество</th>
+                      <th>Общая цена</th>
+                    </tr>
+
+        {% for item in cart.related_products.all %}
+
+            <tr id="row_{{ item.id }}">
+              <td>
+                  <a href="#photo_{{ item.content_object.id }}">{{ item.content_object.id  }}</a>
+              </td>
+              <td>
+                <h5 class="product-title font-alt">
+                    <a href="#photo_{{ item.content_object.id }}">{{ item.content_object.title  }}</a>
+                </h5>
+              </td>
+                <td>
+                <h5 class="product-title font-alt">Цифровой</h5>
+              </td>
+              <td class="hidden-xs">
+                <h5 class="product-title font-alt">€ {{ item.content_object.price }}</h5>
+              </td>
+              <td>
+                <h5 class="product-title font-alt">{{ item.qty }}</h5>
+              </td>
+              <td>
+                <h5 class="product-title font-alt">€ {{ item.final_price }}</h5>
+              </td>
+            </tr>
+
         {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section class="module" style="margin-top: -200px" id="order">
+          <div class="container">
+            <div class="row">
+              <div class="col-sm-8 col-sm-offset-2">
+                <h4 class="module-title font-alt mb-0">Контактная информация</h4>
+                <hr class="divider-w mt-10 mb-20">
+                <form class="form" role="form" id="form" method="POST">
+                   {% csrf_token %}
+                  <div class="form-group">
+                    <input class="form-control input-lg" name="last_name" type="text" placeholder="Фамилия"/>
+                  </div>
+                    <div class="form-group">
+                    <input class="form-control input-lg" name="first_name" type="text" placeholder="Имя"/>
+                  </div>
+                  <div class="form-group">
+                    <input class="form-control input-lg" name="phone" type="text" placeholder="Контактный номер телефона"/>
+                  </div>
+                  <div class="form-group">
+                    <input class="form-control input-lg" name="email" type="text" placeholder="Электронный адрес (на него мы пришлем фотографии и реквизиты для оплаты)"/>
+                  </div>
+                  <textarea class="form-control" name="comment" rows="7" placeholder="Комментарий к заказу"></textarea>
+                    <div class="text-center mt-30">
+                    <button class="btn btn-block btn-round btn-d" id="cfsubmit" type="submit">Заказать</button>
+                  </div>
+                </form>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        {% block javascript %}
+
+                                <script>
+                                    {#$(document).ready(function () {#}
+                                        // catch the form's submit event
+                                        $('#form').submit(function (e) {
+                                            e.preventDefault();
+                                            alert('Ваша заявка успешно отправлена! Проверьте почту, чтобы получить фотографии:)')
+                                            // create an AJAX call
+                                            $.ajax({
+                                                data: $(this).serialize(), // get the form data
+                                                type: $(this).attr('method'), // GET or POST
+                                                url: '/makeorder/',
+                                                // on success
+                                                success: function (response) {
+                                                    alert('Проверьте почту. Мы отправили!');
+                                                    },
+                                                // on error
+                                                error: function (response) {
+                                                    // alert the error if any error occured
+                                                    alert(response.responseJSON.errors);
+                                                    console.log(response.responseJSON.errors)
+                                                }
+                                            });
+                                            return false;
+                                        });
+
+                                </script>
+                                {% endblock javascript %}
+
+
     {% endif %}
 
-    <h3 class="text-center mt-5 mb-5">Форма заказа</h3>
-    <form action="{% url 'make_order' %}" method="post">
-        {% csrf_token %}
-        {{ form|crispy }}
-        <input type="submit" class="btn btn-success btn-block mb-3 mt-3" value="Оформить">
-    </form>
 {% endblock %}
