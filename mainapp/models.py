@@ -1,8 +1,7 @@
 import sys, os
 
-from photoBank.settings import MEDIA_URL
 from PIL import Image
-
+from django.contrib.sessions.models import Session
 from django.utils import timezone
 from django.db import models
 from django.contrib.auth import get_user_model
@@ -15,17 +14,6 @@ from io import BytesIO
 
 User = get_user_model()
 
-
-# Create your models here.
-
-# 1 Album
-# 2 Product
-# 3 CartProduct
-# 4 Cart
-# 5 Order
-# 6 Photo type
-
-# 7 Customer
 
 def get_product_url(obj, viewname):
     return reverse(viewname, kwargs={
@@ -206,7 +194,7 @@ class CartProduct(models.Model):
 
 
 class Cart(models.Model):
-    owner = models.ForeignKey('Customer', null=True, verbose_name='Владелец', on_delete=models.SET_NULL, blank=True)
+    owner = models.ForeignKey('Customer', null=True, verbose_name='Владелец', on_delete=models.CASCADE, blank=True)
     products = models.ManyToManyField(CartProduct, blank=True, related_name='related_cart')
     total_products = models.PositiveIntegerField(default=0)
     final_price = models.DecimalField(default=0, max_digits=9, decimal_places=2, verbose_name='Общая цена')
@@ -235,10 +223,15 @@ class Customer(models.Model):
     device = models.CharField(max_length=200, null=True, blank=True, verbose_name='Девайс')
     orders = models.ManyToManyField('Order', related_name='related_customer', verbose_name='Заказы покупателя')
     lang = models.CharField(max_length=100, verbose_name='Тип заказа', choices=LANG_TYPES, default=LANG_RUS)
+    created_date = models.DateTimeField(auto_now=True, verbose_name='Дата создания')
 
     def __str__(self):
         if self.user:
             return f'Покупатель: {self.user.first_name} {self.user.last_name}'
+        a = len(Session.objects.filter(session_key=self.device))
+        if not len(Session.objects.filter(session_key=self.device)):
+            self.delete()
+
         return f'Незарегестрированный пользователь: {self.device}'
 
 class Order(models.Model):

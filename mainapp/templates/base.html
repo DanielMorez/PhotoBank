@@ -375,7 +375,9 @@
             </div>
             <div class="row">
               <div class="col-sm-8">
-                <form id="contactForm" role="form" method="post" action="">
+
+                <form id="contactForm" role="form" method="POST" action="/">
+                    {% csrf_token %}
                   <div class="form-group">
                     <label class="sr-only" for="name">Name</label>
                     <input class="form-control" type="text" id="name" name="name" placeholder="Ваше имя" required="required" data-validation-required-message="Пожалуйста, введите своё имя"/>
@@ -394,6 +396,37 @@
                     <button class="btn btn-block btn-round btn-d" id="cfsubmit" type="submit">{% if lang == 'rus' %}Отправить{% else %}Saada sõnum{% endif %}</button>
                   </div>
                 </form>
+
+              {% block javascript %}
+
+                                <script>
+                                    {#$(document).ready(function () {#}
+                                        // catch the form's submit event
+                                        $('#form').submit(function (e) {
+                                            e.preventDefault();
+                                            alert('Ваша заявка успешно отправлена! Проверьте почту, чтобы получить фотографии:)')
+                                            // create an AJAX call
+                                            $.ajax({
+                                                data: $(this).serialize(), // get the form data
+                                                type: $(this).attr('method'), // GET or POST
+                                                url: '/',
+                                                // on success
+                                                success: function (response) {
+                                                    alert('Проверьте почту. Мы отправили!');
+                                                    },
+                                                // on error
+                                                error: function (response) {
+                                                    // alert the error if any error occured
+                                                    alert(response.responseJSON.errors);
+                                                    console.log(response.responseJSON.errors)
+                                                }
+                                            });
+                                            return false;
+                                        });
+
+                                </script>
+                                {% endblock javascript %}
+
                 <div class="ajax-response font-alt" id="contactFormResponse"></div>
               </div>
               <div class="col-sm-4">

@@ -1,5 +1,5 @@
 import os
-from photoBank.settings import MEDIA_ROOT
+from photoBank.settings import MEDIA_ROOT, MEDIA_URL
 from django.views.static import serve
 
 from django.contrib.contenttypes.models import ContentType
@@ -15,7 +15,7 @@ from django.http import HttpResponseRedirect
 
 from .mixin import CartMixin, LanguageMixin
 
-from .utils import recalc_cart, send_mail
+from .utils import recalc_cart, send_mail, contact_mail
 
 from .models import Photo, Album, PhotoType, Watermark, Customer
 from .forms import PackageUploadFiles, OrderForm, CartForm
@@ -50,7 +50,15 @@ class MainPageView(LanguageMixin, View):
         return render(request, 'base.html', context)
 
     def post(self, request, *args, **kwargs):
-        pass
+        if request.is_ajax():
+            name = request.POST.get('name')
+            email = request.POST.get('email')
+            message = request.POST.get('message')
+            if name and email and message:
+                response = contact_mail(name, email, message)
+                return JsonResponse(response, status=200)
+        else:
+            return JsonResponse({'error': 'Запрос совершен не с помощью AJAX'}, status=200)
 
 class ChangeLang(MainPageView):
 
@@ -95,6 +103,14 @@ class AlbumShowView(LanguageMixin, CartMixin, View):
             album.save()
             old_path = MEDIA_ROOT + '\\' + old_slug
             new_path = MEDIA_ROOT + '\\' + str(album.slug)
+            # for photo in Photo.objects.filter(album=album):
+                # a = photo.image.path
+                # b = photo.image.url
+                # photo.image.path = new_path + '\\' + os.path.basename(photo.image.path)
+                # photo.image.url = MEDIA_URL[1:] + os.path.basename(photo.image.path)
+                # photo.selling_image = new_path + '\\' + os.path.basename(photo.selling_image.path)
+                # photo.selling_image.url = MEDIA_URL[1:] + os.path.basename(photo.image.path)
+                # photo.save()
             os.rename(old_path, new_path)
         return HttpResponseRedirect(album.get_absolute_url())
 
@@ -199,6 +215,35 @@ class CheckoutView(LanguageMixin, CartMixin, View):
         }
         return render(request, 'checkout.html', context)
 
+    @transaction.atomic
+    def post(self, request, *args, **kwargs):
+        if request.is_ajax():
+            last_name = request.POST.get('last_name')
+            first_name = request.POST.get('first_name')
+            phone = request.POST.get('phone')
+            email = request.POST.get('email')
+            comment = request.POST.get('comment')
+            if self.cart.products.count() == 0:
+                return JsonResponse(
+                    {'cart_counter': 0, 'message': 'Ваша корзина пуста. Скорее всего вы уже отправили заявку!'
+                                                   ' Перенаправляем вас на главную :)'}, status=404)
+            if last_name and first_name and phone and email:
+                form = OrderForm(request.POST or None)
+                if form.is_valid():
+                    new_order = form.save(commit=False)
+                    new_order.customer = self.customer
+                    new_order.first_name = form.cleaned_data['first_name']
+                    new_order.last_name = form.cleaned_data['last_name']
+                    new_order.phone = form.cleaned_data['phone']
+                    new_order.address = form.cleaned_data['email']
+                    new_order.comment = form.cleaned_data['comment']
+                    self.cart.in_order = True
+                    new_order.cart = self.cart
+                    new_order.save()
+                    self.cart.save()
+                    response = send_mail(email, first_name, last_name, phone, comment, self.cart)
+                    return JsonResponse({'cart_counter': 0, 'email': response}, status=200)
+
 class DeleteFromCartView(CartMixin, View):
 
     @transaction.atomic
@@ -230,9 +275,15 @@ class MakeOrderView(CartMixin, View):
             phone = request.POST.get('phone')
             email = request.POST.get('email')
             comment = request.POST.get('comment')
+            if not self.cart.products.count() and None not in self.cart.products.all():
+                return JsonResponse({'cart_counter': 0, 'message': 'Ваша корзина пуста. Скорее всего вы уже отправили заявку!'
+                                                                   ' Перенаправляем вас на главную :)',
+                                     'album': '/'}, status=404)
+
             if last_name and first_name and phone and email:
                 form = OrderForm(request.POST or None)
                 if form.is_valid():
+                    album_slug = self.cart.products.last().content_object.album.slug
                     new_order = form.save(commit=False)
                     new_order.customer = self.customer
                     new_order.first_name = form.cleaned_data['first_name']
@@ -245,7 +296,8 @@ class MakeOrderView(CartMixin, View):
                     new_order.save()
                     self.cart.save()
                     response = send_mail(email, first_name, last_name, phone, comment, self.cart)
-                    return JsonResponse({'cart_counter': 0, 'email': response}, status=200)
+                    return JsonResponse({'cart_counter': 0, 'email': response, 'album': f'/albums/{album_slug}'},
+                                        status=200)
 
 class ProtectMedia(View):
 

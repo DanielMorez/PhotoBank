@@ -11,6 +11,35 @@ from email.mime.text import MIMEText
 from .model_static import EmailCredentials
 
 
+def contact_mail(name, email, message):
+
+    credentials = EmailCredentials.objects.last()
+    # create message object instance
+    msg = MIMEMultipart("alternative")
+
+    # setup the parameters of the message
+    password = credentials.password
+    msg['From'] = credentials.email
+    msg['To'] = credentials.email
+    msg['Subject'] = f"Письмо от {name}"
+
+    html = f"""\
+        <h2 style="text-align: left;">Письмо от {name}, {email}.</h2>
+        <br>
+        <p><i>{message}</i></p>
+    """
+    msg.attach(MIMEText(html, 'html'))
+
+    with smtplib.SMTP(f'{credentials.server}: {credentials.port}') as server:
+        server.starttls()
+        # Login Credentials for sending the mail
+        server.login(msg['From'], password)
+        # send the message via the server.
+        response = server.sendmail(msg['From'], msg['To'], msg.as_string())
+
+    return response
+
+
 def send_mail(addr_to, first_name, last_name, phone, comment, cart):
 
     credentials = EmailCredentials.objects.last()
@@ -123,7 +152,7 @@ def send_mail(addr_to, first_name, last_name, phone, comment, cart):
     msg.attach(MIMEText(html, 'html'))
 
     for item in cart.products.all():
-        with open(item.content_object.selling_image.url[1:], 'rb') as file:
+        with open(item.content_object.selling_image.path, 'rb') as file:
             msgImage = MIMEImage(file.read())
             msgImage.add_header('Content-ID', item.content_object.title)
             msg.attach(msgImage)

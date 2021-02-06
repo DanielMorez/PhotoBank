@@ -140,7 +140,8 @@
                                                 url: '/makeorder/',
                                                 // on success
                                                 success: function (response) {
-                                                    alert('Проверьте почту. Мы отправили!');
+                                                    alert('Проверьте почту. Мы отправили!')
+                                                    window.location.href = response.album;
                                                     },
                                                 // on error
                                                 error: function (response) {
@@ -156,6 +157,8 @@
                                 {% endblock javascript %}
 
 
+        {% else %}
+        <meta http-equiv="refresh" content="1; url='/" />
     {% endif %}
 
 {% endblock %}
