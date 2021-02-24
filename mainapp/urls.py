@@ -4,7 +4,7 @@ from django.urls import path
 from .views import AlbumShowView, TypeAlbumShowView,\
                     UploadFilesView, CartView, AddToCartView, \
                     DeleteFromCartView, CheckoutView, MakeOrderView,\
-                    MainPageView, ChangeLang, ProtectMedia
+                    MainPageView, ChangeLang, ProtectMedia, ChangeQty
 
 urlpatterns = [
     path('', MainPageView.as_view(), name='base'),
@@ -17,5 +17,6 @@ urlpatterns = [
     path('checkout/', CheckoutView.as_view(), name='checkout'),
     path('makeorder/', MakeOrderView.as_view(), name='make_order'),
     path('change_lang', ChangeLang.as_view(), name='change_lang'),
-    path('media/<str:album_slug>/<str:image_title>', ProtectMedia.as_view(), name='protect_media')
+    path('media/<str:album_slug>/<str:image_title>', ProtectMedia.as_view(), name='protect_media'),
+    path('change_qty/', ChangeQty.as_view(), name='change_qty')
 ]

@@ -32,6 +32,7 @@ class Album(models.Model):
     name = models.CharField(max_length=255, verbose_name='Имя категории')
     image = models.ImageField(verbose_name='Обложка', null=True, blank=True)
     slug = models.SlugField(unique=True)
+    ship_price = models.DecimalField(max_digits=9, decimal_places=2, verbose_name='Цена доставки', default=0)
 
     def delete(self, *args, **kwargs):
         # You have to prepare what you need before delete the model
@@ -56,9 +57,10 @@ class Album(models.Model):
 
 class PhotoType(models.Model):
     type_of_photo = models.CharField(max_length=255, verbose_name='Тип фотографии')
+    slug = models.CharField(max_length=255, verbose_name='slug_name', null=True, blank=True)
 
     def __str__(self):
-        return f'Тип фотографии: {self.type_of_photo}'
+        return f'Тип фотографии #{self.id}: {self.type_of_photo}'
 
 
 class Product(models.Model):
@@ -173,6 +175,18 @@ class Watermark(models.Model):
         storage.delete(path)
 
 
+class Service(models.Model):
+    qty = models.PositiveIntegerField(default=1)
+    final_price = models.DecimalField(max_digits=9, decimal_places=2, verbose_name='Общая цена', default=0)
+    service = models.ForeignKey('ServiceAndPrice', verbose_name='Корзина', on_delete=models.CASCADE, related_name='related_service')
+
+    def save(self, *args, **kwargs):
+        try:
+            self.final_price = self.qty * self.service.price
+        except:
+            pass
+        super().save(*args, **kwargs)
+
 class CartProduct(models.Model):
     user = models.ForeignKey('Customer', verbose_name='Покупатель', on_delete=models.CASCADE)
     cart = models.ForeignKey('Cart', verbose_name='Корзина', on_delete=models.CASCADE, related_name='related_products')
@@ -180,7 +194,8 @@ class CartProduct(models.Model):
     object_id = models.PositiveIntegerField()
     content_object = GenericForeignKey('content_type', 'object_id')
     qty = models.PositiveIntegerField(default=1)
-    final_price = models.DecimalField(max_digits=9, decimal_places=2, verbose_name='Общая цена')
+    final_price = models.DecimalField(max_digits=9, decimal_places=2, verbose_name='Общая цена', default=0)
+    services = models.ManyToManyField(Service, verbose_name='Формат фото', null=True, blank=True)
 
     def __str__(self):
         if self.content_object:
@@ -189,7 +204,11 @@ class CartProduct(models.Model):
         return f'Продукт уже удален'
 
     def save(self, *args, **kwargs):
-        self.final_price = self.qty * self.content_object.price
+        # self.final_price = self.qty * self.content_object.price
+        try:
+            self.final_price = self.services.aggregate(models.Sum('final_price')).get('final_price__sum', 0)
+        except:
+            pass
         super().save(*args, **kwargs)
 
 
@@ -200,11 +219,20 @@ class Cart(models.Model):
     final_price = models.DecimalField(default=0, max_digits=9, decimal_places=2, verbose_name='Общая цена')
     in_order = models.BooleanField(default=False)
     for_anonymous_user = models.BooleanField(default=True)
+    total = models.DecimalField(default=0, max_digits=9, decimal_places=2, verbose_name='Цена с доставкой')
 
     def __str__(self):
         if self.owner:
             return f'Корзина: {str(self.owner)}'
         return f'У корзины нет владельца: {self.id}'
+
+    def save(self, *args, **kwargs):
+        try:
+            self.total = self.products.first().content_object.album.ship_price + self.final_price
+        except:
+            pass
+        super().save(*args, **kwargs)
+
 
 
 class Customer(models.Model):

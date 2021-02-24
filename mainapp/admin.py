@@ -53,14 +53,12 @@ class WatermarkAdminForm(ModelForm):
         return image
 
 class PhotoAdmin(admin.ModelAdmin):
-
     form = PhotoAdminForm
+    prepopulated_fields = {'slug': ('title',)}
 
 
 class WatermarkAdmin(admin.ModelAdmin):
-
     form = WatermarkAdminForm
-
 
 class StaticImageAdminForm(ModelForm):
 
@@ -100,16 +98,25 @@ class StaticImageAdminForm(ModelForm):
             raise ValidationError("Загруженное изображение меньше минимального")
         return image
 
-class StaticImageAdmin(admin.ModelAdmin):
 
+class StaticImageAdmin(admin.ModelAdmin):
     form = StaticImageAdminForm
 
-admin.site.register(Album)
+
+class PhotoTypeAdmin(admin.ModelAdmin):
+    prepopulated_fields = {'slug': ('type_of_photo',)}
+
+
+class AlbumAdmin(admin.ModelAdmin):
+    prepopulated_fields = {'slug': ('name',)}
+
+
+admin.site.register(Album, AlbumAdmin)
 admin.site.register(Photo, PhotoAdmin)
 admin.site.register(CartProduct)
 admin.site.register(Cart)
 admin.site.register(Customer)
-admin.site.register(PhotoType)
+admin.site.register(PhotoType, PhotoTypeAdmin)
 admin.site.register(Watermark, WatermarkAdmin)
 admin.site.register(Order)
 admin.site.register(RusLang)
