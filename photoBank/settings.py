@@ -82,14 +82,6 @@ DATABASES = {
         'ENGINE': 'django.db.backends.sqlite3',
         'NAME': BASE_DIR / 'db.sqlite3',
     }
-    # 'default': {
-    #     'ENGINE': 'django.db.backends.postgresql_psycopg2',
-    #     'NAME': 'photo_db',
-    #     'USER': 'dbms',
-    #     'PASSWORD': '24041976',
-    #     'HOST': '84.201.146.57',
-    #     'PORT': '5432',
-    # }
 }
 
 
