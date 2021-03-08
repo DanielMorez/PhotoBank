@@ -54,7 +54,7 @@ class WatermarkAdminForm(ModelForm):
 
 class PhotoAdmin(admin.ModelAdmin):
     form = PhotoAdminForm
-    prepopulated_fields = {'slug': ('title',)}
+    prepopulated_fields = {'image': ('title',)}
 
 
 class WatermarkAdmin(admin.ModelAdmin):
@@ -108,7 +108,7 @@ class PhotoTypeAdmin(admin.ModelAdmin):
 
 
 class AlbumAdmin(admin.ModelAdmin):
-    prepopulated_fields = {'slug': ('name',)}
+    prepopulated_fields = {'slug': ('name',), 'upload_to': ('name',)}
 
 
 admin.site.register(Album, AlbumAdmin)

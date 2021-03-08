@@ -82,15 +82,20 @@
                         <h5 class="product-title font-alt">€ {{ item.services.all.last.service.price }}</h5>
                       </td>
                       <td>
-                        <input class="form-control" type="number" name="" value="{{ item.qty }}" max="50" min="1" readonly/>
+                        <form id="input-{{ item.id }}-{{ item.services.last.id }}" action="/change_qty/" method="post">
+                              {% csrf_token %}
+                                  <input type="hidden" name="cart_product_id" value="{{ item.id }}">
+                                <input type="hidden" name="service_id" value="{{ item.services.last.id }}">
+                              <input class="form-control" type="number" name="qty" value="{{ item.services.last.qty }}" max="50" min="0" />
+                        </form>
                       </td>
                       <td rowspan="{{ item.services.count }}">
                           <h5 class="product-title font-alt">€ <span id="final_price_{{ item.id }}">{{ item.final_price }}</span></h5>
                       </td>
                       <td class="pr-remove" rowspan="{{ item.services.count }}">
-                          <form method="POST" id="form_{{ item.id }}" action_url="/remove/" photo_slug="{{ item.content_object.slug }}">
+                          <form method="POST" id="form_{{ item.id }}" action_url="/remove/" photo_id="{{ item.content_object.id }}">
                               {% csrf_token %}
-                              <input name="photo_slug" type="hidden" value="{{ item.content_object.slug }}">
+                              <input name="photo_id" type="hidden" value="{{ item.content_object.id }}">
                               <button type="submit" id="btn_{{ item.id }}" style="outline: none;border: 0;background-color: transparent;">
                                   <i class="fa fa-times"></i>
                               </button>

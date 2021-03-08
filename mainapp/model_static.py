@@ -222,6 +222,7 @@ class ServiceAndPrice(models.Model):
     description = models.CharField(max_length=256, verbose_name='Краткое описание')
     price = models.DecimalField(max_digits=4, decimal_places=2, verbose_name='Цена')
     type_of_photo = models.ForeignKey('PhotoType', verbose_name='Тип фото', on_delete=models.CASCADE)
+    visible = models.BooleanField(verbose_name='Отображать на главной', default=True)
 
     def __str__(self):
         return f'{self.id}: {self.title}: {self.price}'

@@ -10,24 +10,25 @@
     Document Title
     =============================================
     -->
-    <title>FotoLife</title>
+    <title>Школьный фотобанк</title>
     <!--
     Favicons
     =============================================
     -->
-    <link rel="apple-touch-icon" sizes="57x57" href="{% static 'assets/images/favicons/apple-icon-57x57.png' %}">
-    <link rel="apple-touch-icon" sizes="60x60" href="{% static 'assets/images/favicons/apple-icon-60x60.png' %}">
-    <link rel="apple-touch-icon" sizes="72x72" href="{% static 'assets/images/favicons/apple-icon-72x72.png' %}">
-    <link rel="apple-touch-icon" sizes="76x76" href="{% static 'assets/images/favicons/apple-icon-76x76.png' %}">
-    <link rel="apple-touch-icon" sizes="114x114" href="{% static 'assets/images/favicons/apple-icon-114x114.png' %}">
-    <link rel="apple-touch-icon" sizes="120x120" href="{% static 'assets/images/favicons/apple-icon-120x120.png' %}">
-    <link rel="apple-touch-icon" sizes="144x144" href="{% static 'assets/images/favicons/apple-icon-144x144.png' %}">
-    <link rel="apple-touch-icon" sizes="152x152" href="{% static 'assets/images/favicons/apple-icon-152x152.png' %}">
-    <link rel="apple-touch-icon" sizes="180x180" href="{% static 'assets/images/favicons/apple-icon-180x180.png' %}">
-    <link rel="icon" type="image/png" sizes="192x192" href="{% static 'assets/images/favicons/android-icon-192x192.png' %}">
-    <link rel="icon" type="image/png" sizes="32x32" href="{% static 'assets/images/favicons/favicon-32x32.png' %}">
-    <link rel="icon" type="image/png" sizes="96x96" href="{% static 'assets/images/favicons/favicon-32x32.png' %}">
-    <link rel="icon" type="image/png" sizes="16x16" href="{% static 'assets/images/favicons/favicon-32x32.png' %}">
+      <link rel="icon" href="https://img.icons8.com/fluent/48/000000/old-time-camera.png">
+{#    <link rel="apple-touch-icon" sizes="57x57" href="{% static 'assets/images/favicons/apple-icon-57x57.png' %}">#}
+{#    <link rel="apple-touch-icon" sizes="60x60" href="{% static 'assets/images/favicons/apple-icon-60x60.png' %}">#}
+{#    <link rel="apple-touch-icon" sizes="72x72" href="{% static 'assets/images/favicons/apple-icon-72x72.png' %}">#}
+{#    <link rel="apple-touch-icon" sizes="76x76" href="{% static 'assets/images/favicons/apple-icon-76x76.png' %}">#}
+{#    <link rel="apple-touch-icon" sizes="114x114" href="{% static 'assets/images/favicons/apple-icon-114x114.png' %}">#}
+{#    <link rel="apple-touch-icon" sizes="120x120" href="{% static 'assets/images/favicons/apple-icon-120x120.png' %}">#}
+{#    <link rel="apple-touch-icon" sizes="144x144" href="{% static 'assets/images/favicons/apple-icon-144x144.png' %}">#}
+{#    <link rel="apple-touch-icon" sizes="152x152" href="{% static 'assets/images/favicons/apple-icon-152x152.png' %}">#}
+{#    <link rel="apple-touch-icon" sizes="180x180" href="{% static 'assets/images/favicons/apple-icon-180x180.png' %}">#}
+{#    <link rel="icon" type="image/png" sizes="192x192" href="{% static 'assets/images/favicons/android-icon-192x192.png' %}">#}
+{#    <link rel="icon" type="image/png" sizes="32x32" href="{% static 'assets/images/favicons/favicon-32x32.png' %}">#}
+{#    <link rel="icon" type="image/png" sizes="96x96" href="{% static 'assets/images/favicons/favicon-32x32.png' %}">#}
+{#    <link rel="icon" type="image/png" sizes="16x16" href="{% static 'assets/images/favicons/favicon-32x32.png' %}">#}
     <link rel="manifest" href="{% static '/manifest.json' %}">
     <meta name="msapplication-TileColor" content="#ffffff">
     <meta name="msapplication-TileImage" content="assets/images/favicons/ms-icon-144x144.png">
@@ -66,25 +67,32 @@
           <div class="navbar-header">
             <button class="navbar-toggle" type="button" data-toggle="collapse" data-target="#custom-collapse">
                 <span class="sr-only">Toggle navigation</span><span class="icon-bar"></span><span class="icon-bar"></span><span class="icon-bar"></span></button>
-              <a class="navbar-brand" href="/">FOTOLIFE-SPORT</a>
+              <a class="navbar-brand" href="/">ШКОЛЬНЫЙ ФОТОБАНК</a>
           </div>
           <div class="collapse navbar-collapse" id="custom-collapse">
             <ul class="nav navbar-nav navbar-right">
                 <li>{% if cart %}<a href="/cart/">Корзина <strong id="cart">{{ cart_counter }}</strong></a>{% endif %}</li>
-                <li><a class="section-scroll" href="#service">{% if lang == 'rus' %}Услуги{% else %}teenused{% endif %}</a></li>
-                <li><a class="section-scroll" href="#portfolio">{% if lang == 'rus' %}Портфолио{% else %}Portfell{% endif %}</a></li>
+                <li><a class="section-scroll" {% if request.resolver_match.view_name == 'base' %}
+                       href="#service"{% else %}href="/" target="_blank"{% endif %}>{% if lang == 'rus' %}Услуги{% else %}teenused{% endif %}</a></li>
+                <li><a class="section-scroll" {% if request.resolver_match.view_name == 'base' %}
+                       href="#portfolio"{% else %}href="/" target="_blank"{% endif %}>{% if lang == 'rus' %}Портфолио{% else %}Portfell{% endif %}</a></li>
 
                 <li class="dropdown"><a class="dropdown-toggle" href="#" data-toggle="dropdown">Q&A</a>
                 <ul class="dropdown-menu">
-                  <li><a class="section-scroll" href="#about">{% if lang == 'rus' %}О нас{% else %}Meist{% endif %}</a></li>
-{#                  <li><a class="section-scroll" href="#skill">{% if lang == 'rus' %}Наш опыт{% else %}Meie kogemus{% endif %}</a></li>#}
-                  <li><a class="section-scroll" href="#qna">{% if lang == 'rus' %}Часто задаваемые вопросы{% else %}Korduma kippuvad küsimused{% endif %}</a></li>
-                  <li><a class="section-scroll" href="#contact">{% if lang == 'rus' %}Контакты{% else %}Kontaktid{% endif %}</a></li>
+                  <li><a class="section-scroll" {% if request.resolver_match.view_name == 'base' %}
+                       href="#about"{% else %}href="/" target="_blank"{% endif %}>{% if lang == 'rus' %}О нас{% else %}Meist{% endif %}</a></li>
+                  <li><a class="section-scroll" {% if request.resolver_match.view_name == 'base' %}
+                       href="#qna"{% else %}href="/" target="_blank"{% endif %}>{% if lang == 'rus' %}Часто задаваемые вопросы{% else %}Korduma kippuvad küsimused{% endif %}</a></li>
+                  <li><a class="section-scroll" {% if request.resolver_match.view_name == 'base' %}
+                       href="#contact"{% else %}href="/" target="_blank"{% endif %}>{% if lang == 'rus' %}Контакты{% else %}Kontaktid{% endif %}</a></li>
                 </ul>
                 </li>
                 <li></li>
                 <li>
-                    <a href="{% url 'change_lang' %}">{% if lang == 'rus' %}Eestlane{% else %}Русский{% endif %}</a>
+                    <a href="{% url 'change_lang' %}">{% if lang == 'rus' %}Eestlane<i><img style="width: 20px; padding-bottom: 3px; padding-left: 5px" src="https://img.icons8.com/color/48/000000/estonia-circular.png"/></i>
+                    {% else %}
+                        Русский<i><img style="width: 20px; padding-bottom: 3px; padding-left: 5px" src="https://img.icons8.com/color/48/000000/russian-federation-circular.png"/></i>
+                    {% endif %}</a>
                 </li>
             </ul>
           </div>
@@ -182,7 +190,7 @@
                     <ul class="filter font-alt" id="filters">
                       <li><a class="current wow fadeInUp" href="#" data-filter="*">{% if lang == 'rus' %}Все{% else %}Kõik{% endif %}</a></li>
                       {% for category in categories %}
-                        <li><a class="wow fadeInUp" href="#" data-filter=".{{ category.type_of_photo }}" data-wow-delay="0.6s">{{ category.type_of_photo }}</a></li>
+                        <li><a class="wow fadeInUp" href="#" data-filter=".{{ category.slug }}" data-wow-delay="0.6s">{{ category.type_of_photo }}</a></li>
                     {% endfor %}
                     </ul>
                   </div>
@@ -193,7 +201,7 @@
                 <ul class="works-grid works-grid-gut works-grid-3 works-hover-w" id="works-grid">
                     {% for photo in portfolio %}
 
-                        <li class="work-item {{ photo.type_of_photo }}">
+                        <li class="work-item {{ photo.type_of_photo.slug }}">
 
                           <div class="col-sm-6 col-md-4 col-lg-4">
                             <div class="gallery-item">
@@ -224,7 +232,7 @@
                 </div>
               </div>
               <div class="col-sm-6 col-md-4 col-lg-2">
-                <div class="callout-btn-box"><a class="btn btn-w btn-round" href="{{ media.facebook }}">{% if lang == 'rus' %}Подписаться{% else %}Telli{% endif %}</a></div>
+                <div class="callout-btn-box"><a class="btn btn-w btn-round" href="{{ media.facebook }}" target="_blank">{% if lang == 'rus' %}Подписаться{% else %}Telli{% endif %}</a></div>
               </div>
             </div>
           </div>
@@ -330,13 +338,15 @@
                 <div class="menu">
                   <div class="row">
                       {% for post in services %}
-                        <div class="col-sm-8">
-                          <h4 class="menu-title font-alt">{{ post.title }}</h4>
-                          <div class="menu-detail font-serif">{{ post.description }}</div>
-                        </div>
-                        <div class="col-sm-4 menu-price-detail">
-                          <h4 class="menu-price font-alt">€{{ post.price }}</h4>
-                        </div>
+                          {% if post.visible %}
+                            <div class="col-sm-8">
+                              <h4 class="menu-title font-alt">{{ post.title }}</h4>
+                              <div class="menu-detail font-serif">{{ post.description }}</div>
+                            </div>
+                            <div class="col-sm-4 menu-price-detail">
+                              <h4 class="menu-price font-alt">€{{ post.price }}</h4>
+                            </div>
+                          {% endif %}
                       {% endfor %}
                   </div>
                 </div>
@@ -452,14 +462,21 @@
           <div class="container">
             <div class="row">
               <div class="col-sm-6">
-                <p class="copyright font-alt">&copy; 2021&nbsp;<a href="/">FOTOLIFE-SPORT.EE</a>, All Rights Reserved</p>
+                <p class="copyright font-alt">&copy; 2021&nbsp;<a href="/">FOTOLIFE-SCHOOL.EE</a>, All Rights Reserved</p>
               </div>
               <div class="col-sm-6">
                 <div class="footer-social-links">
-                    <a href="{{ media.facebook }}"><i class="fa fa-facebook"></i>
-                    </a><a href="{{ media.twiter }}"><i class="fa fa-twitter"></i></a>
-                    <a href="{{ media.youtube }}"><i class="fa fa-dribbble"></i></a>
-                    <a href="{{ media.instagram }}"><i class="fa fa-skype"></i></a>
+                    {% if media.facebook %}<a href="{{ media.facebook }}"><i>
+                        <img style="width: 25px" src="https://img.icons8.com/color/48/000000/facebook.png"/>
+                    </i>
+                    </a>{% endif %}
+                    {% if media.twitter %}<a href="{{ media.twitter }}">
+                        <i><img style="width: 25px" src="https://img.icons8.com/color/48/000000/twitter-squared.png"/></i></a>{% endif %}
+                    {% if media.youtube %}<a href="{{ media.youtube }}"><i>
+                        <img style="width: 25px" src="https://img.icons8.com/color/48/000000/youtube-squared.png"/>
+                    </i></a>{% endif %}
+                    {% if media.instagram %}<a href="{{ media.instagram }}">
+                        <i><img style="width: 25px" src="https://img.icons8.com/color/48/000000/instagram-new.png"/></i></a>{% endif %}
                 </div>
               </div>
             </div>

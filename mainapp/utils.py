@@ -40,7 +40,7 @@ def contact_mail(name, email, message):
     return response
 
 
-def send_mail(addr_to, first_name, last_name, phone, comment, cart):
+def send_mail(addr_to, first_name, last_name, phone, comment, cart, order):
 
     credentials = EmailCredentials.objects.last()
 
@@ -51,7 +51,7 @@ def send_mail(addr_to, first_name, last_name, phone, comment, cart):
     password = credentials.password
     msg['From'] = credentials.email
     msg['To'] = addr_to
-    msg['Subject'] = "Заказ #1"
+    msg['Subject'] = f"Заказ #{order.id}"
 
     html = f"""\
         <html>
@@ -107,7 +107,7 @@ def send_mail(addr_to, first_name, last_name, phone, comment, cart):
     for item in cart.related_products.all():
         html += f"""\
             <tr>
-              <td rowspan="{item.services.count}">
+              <td rowspan="{item.services.count()}">
                   {item.content_object.id}
               </td>
               <td style="text-align:left; padding-left:20px" rowspan="{item.services.count()}">
@@ -120,7 +120,7 @@ def send_mail(addr_to, first_name, last_name, phone, comment, cart):
                 <h5>€ {item.services.all().last().service.price}</h5>
               </td>
               <td style="text-align:left; padding-left:20px">
-                <h5>€ {item.services.all().last().qty}</h5>
+                <h5>{item.services.all().last().qty}</h5>
               </td>
               <td style="text-align:left; padding-left:20px" rowspan="{item.services.count()}">
                 <h5>€ {item.final_price}</h5>
@@ -147,7 +147,10 @@ def send_mail(addr_to, first_name, last_name, phone, comment, cart):
 
     html += f"""\
                 <tr>
-                    <td col='4'></td>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                    <td></td>
                     <td><strong>Итог</strong></td>
                     <td><strong>{cart.final_price}</strong></td>
                 </tr>
@@ -193,6 +196,7 @@ def recalc_cart(cart):
     cart.total_products = cart_data['id__count']
     cart.save()
 
+
 def recalc_cart_product(cart_product):
     cp = cart_product.services.aggregate(models.Sum('final_price'))
     if cp.get('final_price__sum'):
@@ -200,28 +204,3 @@ def recalc_cart_product(cart_product):
     else:
         cart_product.final_price = 0
     cart_product.save()
-
-# def recalc_cart(cart):
-#     total_sum = 0
-#     for cart_prod in cart.products.all():
-#         final_sum = 0
-#         for service in cart_prod.services.all():
-#             service.final_price = service.qty * service.service.price
-#             service.save()
-#             final_sum += service.final_price
-#         cart_prod.final_price = final_sum
-#         total_sum += cart_prod.final_price
-#     cart.final_price = total_sum
-#     cart.save()
-
-
-# def recalc_cart(cart):
-#
-#     cart_data = cart.products.aggregate(models.Sum('final_price'), models.Count('id'))
-#     if cart_data.get('final_price__sum'):
-#         cart.final_price = cart_data['final_price__sum']
-#     else:
-#         cart.final_price = 0
-#
-#     cart.total_products = cart_data['id__count']
-#     cart.save()

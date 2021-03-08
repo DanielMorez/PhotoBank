@@ -51,15 +51,21 @@ class CartMixin(View):
             device = request.session.session_key
             self.customer, created = Customer.objects.get_or_create(device=device)
 
+        self.cart, created = Cart.objects.get_or_create(owner=self.customer, in_order=False)
+
+        try:
+            self.album = self.cart.products.last().content_object.album
+        except:
+            pass
+
         if kwargs.get('album_slug'):
             self.album = Album.objects.get(slug=kwargs['album_slug'])
+
         if kwargs.get('type_of_photo'):
             self.type_of_photo = PhotoType.objects.get(type_of_photo=kwargs['type_of_photo'])
 
-        self.cart, created = Cart.objects.get_or_create(owner=self.customer, in_order=False)
-        if not self.album and self.cart.products.count():
-            if self.cart.products.last().content_object:
-                self.album = self.cart.products.last().content_object.album
+        if self.album and self.cart.related_products.count():
+            if self.cart.related_products.last().content_object:
                 self.products_id = [item.content_object.id for item in self.cart.related_products.all()]
         return super().dispatch(request, *args, **kwargs)
 

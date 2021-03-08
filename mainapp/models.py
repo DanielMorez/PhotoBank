@@ -9,6 +9,7 @@ from django.contrib.contenttypes.models import ContentType
 from django.contrib.contenttypes.fields import GenericForeignKey
 from django.urls import reverse
 from django.core.files.uploadedfile import InMemoryUploadedFile
+from django.core.files.base import ContentFile
 from django.utils.crypto import get_random_string
 from io import BytesIO
 
@@ -23,15 +24,13 @@ def get_product_url(obj, viewname):
     })
 
 def get_upload_to(instance, filename):
-    return f'{instance.album.slug}/{filename}'
-
-def get_origin_upload_to(instance, filename):
-    return f'orig/{instance.album.slug}/{filename}'
+    return f'{instance.album.upload_to}/{filename}'
 
 class Album(models.Model):
     name = models.CharField(max_length=255, verbose_name='Имя категории')
     image = models.ImageField(verbose_name='Обложка', null=True, blank=True)
     slug = models.SlugField(unique=True)
+    upload_to = models.CharField(max_length=124, verbose_name='Папка загрузки')
     ship_price = models.DecimalField(max_digits=9, decimal_places=2, verbose_name='Цена доставки', default=0)
 
     def delete(self, *args, **kwargs):
@@ -72,38 +71,17 @@ class Product(models.Model):
         abstract = True
 
     album = models.ForeignKey(Album, verbose_name='Альбом', on_delete=models.CASCADE)
-    title = models.CharField(max_length=255, verbose_name='Имя фотографии')
-    slug = models.SlugField(unique=True, default=0)
-    image = models.ImageField(upload_to=get_upload_to, verbose_name='Фотография с водянным знаком')
-    price = models.DecimalField(max_digits=9, decimal_places=2, verbose_name='Цена')
-    selling_image = models.ImageField(upload_to=get_origin_upload_to, verbose_name='Фотография без водяного знака', null=True, blank=True)
+    title = models.CharField(max_length=255, verbose_name='Имя фотографии', default='Фото')
+    image = models.ImageField(upload_to=get_upload_to, verbose_name='Фотография с водянным знаком', blank=True)
 
     def __str__(self):
         return self.title
-
-    def slug_save(self):
-        """ A function to generate a 5 character slug and see if it has been used and contains naughty words."""
-
-        if len(type(self).objects.filter(slug=self.slug)) > 0 or self.slug is None:  # if there isn't a slug
-
-            self.slug = get_random_string(9)  # create one
-            slug_is_wrong = True
-            while slug_is_wrong:  # keep checking until we have a valid slug
-                slug_is_wrong = False
-                other_objs_with_slug = type(self).objects.filter(slug=self.slug)
-                if len(other_objs_with_slug) > 0:
-                    # if any other objects have current slug
-                    slug_is_wrong = True
-                if slug_is_wrong:
-                    # create another slug and check it again
-                    self.slug = get_random_string(5)
-        super().save()
 
 
 class Photo(Product):
 
     type_of_photo = models.ForeignKey(PhotoType, verbose_name='Тип фотографии', on_delete=models.CASCADE)
-    watermark = models.ForeignKey("Watermark", verbose_name='Водяной знак', null=True, on_delete=models.CASCADE)
+    watermark = models.ForeignKey("Watermark", verbose_name='Водяной знак', null=True, blank=True, on_delete=models.CASCADE)
 
     def __str__(self):
         return f"{self.album.name} : {self.title}"
@@ -111,54 +89,44 @@ class Photo(Product):
     def get_absolute_url(self):
         return get_product_url(self, 'product_detail')
 
-    def delete(self, *args, **kwargs):
+    def save(self, *args, **kwargs):
         # You have to prepare what you need before delete the model
         storage, path = self.image.storage, self.image.path
-        selling_storage, selling_path = self.selling_image.storage, self.selling_image.path
-        # Delete the model before the file
-        super(Photo, self).delete(*args, **kwargs)
-        # Delete the file after the model
-        storage.delete(path)
-        selling_storage.delete(selling_path)
+        if self.watermark:
+            image = self.image
+            wm = self.watermark.image
+            base_image = Image.open(image)  # Открываем полотно для изображения
+            watermark = Image.open(wm).convert('RGBA')  # Устанавливаем цветовую корекцию
 
-    def save(self, *args, **kwargs):
-        self.slug_save()
-        image = self.image
-        self.selling_image = self.image
-        wm = self.watermark.image
+            width, height = base_image.size     # Получим размеры водяного знака (вз) и изображения,
+            w_width, w_height = watermark.size  # чтобы определить кол-во наложение вз
 
-        base_image = Image.open(image)
-        watermark = Image.open(wm).convert('RGBA')
-        width, height = base_image.size
-        w_width, w_height = watermark.size
+            transparent = Image.new('RGBA', (width, height), (0, 0, 0, 0))  # Определяем размеры полотна
+            transparent.paste(base_image, (0, 0))  # Накладываем изображение на полотно
 
-        transparent = Image.new('RGBA', (width, height), (0, 0, 0, 0))
-        transparent.paste(base_image, (0, 0))
-        for row in range(height // w_height + 1):
-            for col in range(width // w_width + 1):
-                transparent.paste(watermark, (col * w_width - 50, row * w_height - 50), mask=watermark)
+            # Накладываем вз на полотно
+            for row in range(height // w_height + 1):
+                for col in range(width // w_width + 1):
+                    transparent.paste(watermark, (col * w_width - 50, row * w_height - 50), mask=watermark)
 
-        filestream = BytesIO()
-        transparent.save(filestream, 'PNG')
-        filestream.seek(0)
+            # Открываем поток на запись изображения
+            filestream = BytesIO()
+            transparent.save(filestream, 'PNG')
+            filestream.seek(0)
 
-        try:
-            format = image.path.split('.')[-1]
-        except:
-            format = 'png'
-
-        title = image.path.split('/')[-1]
-
-        self.image = InMemoryUploadedFile(
-            filestream, 'ImageField', f'{title}', f'{format}/image', sys.getsizeof(filestream),
-            None
-        )
+            self.image = InMemoryUploadedFile(
+                filestream, 'ImageField', f'{image.name}', f'{transparent.format}/image',
+                sys.getsizeof(filestream), None
+            )
         super().save(*args, **kwargs)
 
+        if self.image.path == path:  # Если есть изменения после сохранения удаляем старую версию
+            try: storage.delete(path)  # Удаляем старую версию фото
+            except: pass
 
 class Watermark(models.Model):
 
-    MAX_RESOLUTION = (500, 500)
+    MAX_RESOLUTION = (4000, 4000)
     MIN_RESOLUTION = (100, 100)
     title = models.CharField(max_length=255, verbose_name='Имя водного знака')
     image = models.ImageField(upload_to='watermarks')
@@ -204,7 +172,6 @@ class CartProduct(models.Model):
         return f'Продукт уже удален'
 
     def save(self, *args, **kwargs):
-        # self.final_price = self.qty * self.content_object.price
         try:
             self.final_price = self.services.aggregate(models.Sum('final_price')).get('final_price__sum', 0)
         except:

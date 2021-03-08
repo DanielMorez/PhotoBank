@@ -45,7 +45,7 @@ class MainPageView(LanguageMixin, View):
 
         context['reviews'] = Review.objects.all()
         context['portfolio'] = Portfolio.objects.all()
-        if Review.objects.count():
+        if Media.objects.count():
             context['media'] = Media.objects.last()
 
         context['categories'] = set(item.type_of_photo for item in context['portfolio'])
@@ -109,7 +109,10 @@ class AlbumShowView(LanguageMixin, CartMixin, View):
             album.save()
             old_path = MEDIA_ROOT + '\\' + old_slug
             new_path = MEDIA_ROOT + '\\' + str(album.slug)
-            os.rename(old_path, new_path)
+            try:
+                os.rename(old_path, new_path)
+            except:
+                os.makedirs(new_path)
         return HttpResponseRedirect(album.get_absolute_url())
 
 
@@ -159,14 +162,15 @@ class UploadFilesView(FormView):
 
         if form.is_valid() and 'image' in request.FILES['files'].content_type:
             album = Album.objects.get(pk=request.POST['albums'])
-            watermark = Watermark.objects.get(pk=request.POST['watermarks'])
+            try:
+                watermark = Watermark.objects.get(pk=request.POST['watermarks'])
+            except ValueError:
+                watermark = None
             photo_type = PhotoType.objects.get(pk=request.POST['photo_type'])
-            price = request.POST['price']
             for file in files:
                 one_image = Photo(
                     album=album, title=file.name,
-                    slug='photo_a', image=file,
-                    price=price, type_of_photo=photo_type,
+                    image=file, type_of_photo=photo_type,
                     watermark=watermark
                 )
                 one_image.save()
@@ -175,13 +179,14 @@ class UploadFilesView(FormView):
         else:
             return self.form_invalid(form)
 
+
 class AddToCartView(CartMixin, View):
 
     @transaction.atomic
     def post(self, request, *args, **kwargs):
         if request.is_ajax():
             content_type = ContentType.objects.get_for_model(Photo)
-            content_object = Photo.objects.get(slug=request.POST['photo_slug'])
+            content_object = Photo.objects.get(pk=int(request.POST['photo_id']))
             services = ServiceAndPrice.objects.filter(type_of_photo=content_object.type_of_photo)
             cart_product, created = CartProduct.objects.get_or_create(
                 user=self.customer, cart=self.cart, content_type=content_type,
@@ -206,7 +211,7 @@ class CartView(LanguageMixin, CartMixin, View):
             'lang_dict': self.lang_model,
             'cart': self.cart,
             'album': self.album,
-            'cart_counter': self.cart.products.count()
+            'cart_counter': self.cart.products.count(),
         }
         return render(request, 'cart.html', context)
 
@@ -216,7 +221,8 @@ class CheckoutView(LanguageMixin, CartMixin, View):
         context = {
             'images': self.images,
             'cart': self.cart,
-            'album': self.album
+            'album': self.album,
+            'lang': self.customer.lang,
         }
         return render(request, 'checkout.html', context)
 
@@ -255,7 +261,7 @@ class DeleteFromCartView(CartMixin, View):
     def post(self, request, *args, **kwargs):
         if request.is_ajax():
             content_type = ContentType.objects.get_for_model(Photo)
-            content_object = Photo.objects.get(slug=request.POST['photo_slug'])
+            content_object = Photo.objects.get(pk=int(request.POST['photo_id']))
             cart_product, created = CartProduct.objects.get_or_create(
                 user=self.customer, cart=self.cart, content_type=content_type, object_id=content_object.id
             )
@@ -266,7 +272,9 @@ class DeleteFromCartView(CartMixin, View):
                 'cart_counter': self.cart.products.count(),
                 'action': '/add/',
                 'final_price': self.cart.final_price,
-                'total_price': self.cart.total
+                'total_price': self.cart.total,
+                'message': 'Товар успешно удален!',
+                'album': self.album,
             }
             return JsonResponse(context, status=200)
 
@@ -301,18 +309,9 @@ class MakeOrderView(CartMixin, View):
                     new_order.cart = self.cart
                     new_order.save()
                     self.cart.save()
-                    response = send_mail(email, first_name, last_name, phone, comment, self.cart)
+                    response = send_mail(email, first_name, last_name, phone, comment, self.cart, new_order)
                     return JsonResponse({'cart_counter': 0, 'email': response, 'album': f'/albums/{album_slug}'},
                                         status=200)
-
-class ProtectMedia(View):
-
-    def get(self, request, *args, **kwargs):
-        key = kwargs['image_title'].split('_')[-1]
-        if request.user.is_authenticated or len(kwargs['image_title'].split('_')[-1]) >= 7:
-            filepath = f'media/{kwargs["album_slug"]}/{kwargs["image_title"]}'
-            return serve(request, os.path.basename(filepath), os.path.dirname(filepath))
-        return HttpResponseRedirect('/')
 
 
 class ChangeQty(CartMixin, View):

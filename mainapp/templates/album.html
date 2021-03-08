@@ -30,9 +30,9 @@
                                           </a>
                                       </div>
                                     </div>
-                                      <form method="POST" id="form_{{ photo.id }}" action_url="{% if photo.id in products_id %}/remove/{% else %}/add/{% endif %}" photo_slug="{{ photo.slug }}">
+                                      <form method="POST" id="form_{{ photo.id }}" action_url="{% if photo.id in products_id %}/remove/{% else %}/add/{% endif %}" photo_id="{{ photo.id }}">
                                           {% csrf_token %}
-                                          <input name="photo_slug" type="hidden" value="{{ photo.slug }}">
+                                          <input name="photo_id" type="hidden" value="{{ photo.id }}">
                                           <div class="text-center" style="width: 375px;">
                                               <button class="btn btn-block btn-round btn-d" type="submit" id="btn_{{ photo.id }}">
                                                   {% if photo.id in products_id %}Убрать из корзины{% else %}Добавить в корзину{% endif %}
@@ -48,7 +48,7 @@
                                 <script>
                                     {#$(document).ready(function () {#}
                                         // catch the form's submit event
-                                        $('#form_{{ photo.id }}').submit(function (e) {
+                                        $('#form_{{ photo.id }}').submit('.accept_friend', function (e) {
                                             e.preventDefault();
                                             // create an AJAX call
                                             $.ajax({
@@ -57,21 +57,28 @@
                                                 url: $(this).attr('action_url'),
                                                 // on success
                                                 success: function (response) {
-                                                    if (response.cart_counter != 0) {
-                                                        selector = $("#btn_{{ photo.id }}")
-                                                        form = $("#form_{{ photo.id }}")
-                                                        if (form.attr('action_url') == '/add/') {
-                                                            selector.text('Убрать из корзины')
-                                                            form.attr('action_url', '/remove/')
+                                                    if (1) {
 
-                                                        } else if (form.attr('action_url') == '/remove/') {
-                                                            form.attr('action_url', '/add/')
-                                                            selector.text('Добавить в корзину')
-                                                        }
+                                                        var selector = $("#btn_{{ photo.id }}")
+                                                        var form = $("#form_{{ photo.id }}")
+
+
                                                         $("#cart").text(response.cart_counter),
                                                             selector.attr('class', "btn btn-block btn-round btn-d"),
                                                             selector.attr('type', "submit"),
                                                             selector.attr('id', "btn_{{ photo.id }}")
+
+                                                        if (form.attr('action_url') == '/add/') {
+                                                            selector.text('Убрать из корзины');
+                                                            form.attr('action_url', '/remove/');
+
+                                                        }
+                                                        else if (form.attr('action_url') == '/remove/') {
+                                                            form.attr('action_url', '/add/');
+                                                            selector.text('Добавить в корзину');
+                                                        };
+
+
                                                     } else {
                                                         alert(response.message),
                                                         window.wait(5000),
