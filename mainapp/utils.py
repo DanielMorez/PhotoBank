@@ -8,7 +8,9 @@ from email.mime.image import MIMEImage
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
 
-from .model_static import EmailCredentials
+from django.utils.datetime_safe import datetime
+
+from .model_static import EmailCredentials, ContactInfo
 
 
 def contact_mail(name, email, message):
@@ -43,7 +45,8 @@ def contact_mail(name, email, message):
 def send_mail(addr_to, first_name, last_name, phone, comment, cart, order):
 
     credentials = EmailCredentials.objects.last()
-
+    contact = ContactInfo.objects.last()
+    album = cart.products.last().content_object.album
     # create message object instance
     msg = MIMEMultipart("alternative")
 
@@ -53,121 +56,189 @@ def send_mail(addr_to, first_name, last_name, phone, comment, cart, order):
     msg['To'] = addr_to
     msg['Subject'] = f"Заказ #{order.id}"
 
-    html = f"""\
-        <html>
-            </head>
-          <body>
-            <h3 style='text-align:center;'>Оплата</h3>
-            <br>
-            <table style='text-align: left; margin-left: auto; margin-right: auto; border: 1px solid black;'>
-                <tbody>
-                    <tr>
-                        <td>Реквизиты для оплаты</td>
-                        <td style="text-align:left; padding-left:20px"><strong>{credentials.iban}</strong></td>
-                    </tr>
-                    <tr>
-                        <td>В комментарие к оплате укажите</td>
-                        <td style="text-align:left; padding-left:20px"><strong>школу, класс, имя ребенка</strong></td>
-                    </tr>
-                    <tr>
-                        <td>Имя покупателя</td>
-                        <td style="text-align:left; padding-left:20px"><strong>{first_name.upper()} {last_name.upper()}</strong></td>
-                    </tr>
-                    <tr>
-                        <td>Телефон покупателя</td>
-                        <td style="text-align:left; padding-left:20px"><strong>{phone}</strong></td>
-                    </tr>
-                    <tr>
-                        <td>Email покупателя</td>
-                        <td style="text-align:left; padding-left:20px"><strong>{addr_to}</strong></td>
-                    </tr>
-                    <tr>
-                        <td>Комментарий к заказу</td>
-                        <td style="text-align:left; padding-left:20px"><strong>{comment}</strong></td>
-                    </tr>
-                </tbody>
-            </table>
-            
-            <br>
-            <br>
-            <h3 style='text-align: center;'>Заказ #{cart.id}</h3>
-            <table style='text-align: center; margin-left: auto; margin-right: auto; border: 1px solid black;'>
-                <thead>
-                    <tr>
-                        <td><strong>ID</strong></td>
-                        <td style="text-align:left; padding-left:20px"><strong>Название</strong></td>
-                        <td style="text-align:left; padding-left:20px"><strong>Формат</strong></td>
-                        <td style="text-align:left; padding-left:20px"><strong>Цена</td>
-                        <td style="text-align:left; padding-left:20px"><strong>Кол-во</strong></td>
-                        <td style="text-align:left; padding-left:20px"><strong>Общая цена</strong></td>
-                    </tr>
-                </thead>
-                <tbody>
+    html = """\
+        <!DOCTYPE html>
+	<html>
+		<head>
+			<meta charset="utf-8" />
+			<title>Выставленный счет</title>
+
+			<style>
+				body {
+					font-family: 'Calibri Light', 'Helvetica', Helvetica, Arial, sans-serif;
+				}
+
+				.invoice-box {
+					max-width: 800px;
+					margin: auto;
+					padding: 30px;
+					border: 1px solid #eee;
+					box-shadow: 0 0 10px rgba(0, 0, 0, 0.15);
+					font-size: 16px;
+					line-height: 24px;
+					color: #555;
+				}
+
+				.invoice-box table {
+					width: 100%;
+					line-height: inherit;
+					text-align: left;
+				}
+
+				.invoice-box table td {
+					padding: 5px;
+					vertical-align: top;
+				}
+
+				.invoice-box table tr td:nth-child(2) {
+					text-align: right;
+				}
+
+				.invoice-box table tr.top table td {
+					padding-bottom: 20px;
+				}
+
+				.invoice-box table tr.top table td.title {
+					font-size: 45px;
+					line-height: 45px;
+					color: #333;
+				}
+
+				.invoice-box table tr.information table td {
+					padding-bottom: 40px;
+				}
+
+				.invoice-box table tr.heading td {
+					background: #eee;
+					border-bottom: 1px solid #ddd;
+					font-weight: bold;
+				}
+
+				.invoice-box table tr.details td {
+					padding-bottom: 20px;
+				}
+
+				.invoice-box table tr.item td {
+					border-bottom: 1px solid #eee;
+				}
+
+				.invoice-box table tr.item.last td {
+					border-bottom: none;
+				}
+
+				.invoice-box table tr.total td:nth-child(2) {
+					border-top: 2px solid #eee;
+					font-weight: bold;
+				}
+
+				@media only screen and (max-width: 600px) {
+					.invoice-box table tr.top table td {
+						width: 100%;
+						display: block;
+						text-align: center;
+					}
+
+					.invoice-box table tr.information table td {
+						width: 100%;
+						display: block;
+						text-align: center;
+					}
+				}
+
+				/** RTL **/
+				.rtl {
+					direction: rtl;
+				}
+
+				.rtl table {
+					text-align: right;
+				}
+
+				.rtl table tr td:nth-child(2) {
+					text-align: left;
+				}
+			</style>
+		</head>"""
+    html += f"""
+		<body>
+			<div class="invoice-box">
+				<table cellpadding="0" cellspacing="0">
+					<tr class="top">
+						<td colspan="4">
+							<table>
+								<tr>
+									<td>
+										<h1 style="padding-top: 24px;">Школьный фотобанк</h1>
+									</td>
+
+									<td style="text-align: right;">
+										Выставленный счёт №{order.id}<br />
+										{datetime.today().strftime('%d-%m-%Y')}<br />
+										Alex Nazarati, {contact.phone}
+									</td>
+								</tr>
+							</table>
+						</td>
+					</tr>
+
+					<tr class="information">
+						<td colspan="4">
+							<table>
+								<tr>
+									<td>
+										{contact.company}<br />
+										{contact.address}<br />
+										{contact.city}, {contact.zip}
+									</td>
+
+									<td style='text-align: right;'>
+									    {first_name} {last_name}<br />
+										{phone}<br />
+										{addr_to}
+									</td>
+								</tr>
+							</table>
+						</td>
+					</tr>
+
+					<tr class="heading">
+						<td colspan="4">Альбомы</td>
+					</tr>
+					<tr class="item">
+						<td colspan="4">{album.name}</td>
+					</tr>
+
+
+					<tr class="heading">
+						<td>Название</td>
+						<td style="text-align: left;">Формат</td>
+						<td style="text-align: center;">Цена</td>
+						<td style="text-align: right;">Количество</td>
+					</tr>
     """
     for item in cart.related_products.all():
-        html += f"""\
-            <tr>
-              <td rowspan="{item.services.count()}">
-                  {item.content_object.id}
-              </td>
-              <td style="text-align:left; padding-left:20px" rowspan="{item.services.count()}">
-                <h5>{item.content_object.title}</h5>
-              </td>
-              <td style="text-align:left; padding-left:20px">
-                <h5>{item.services.all().last().service.title}</h5>
-              </td>
-              <td style="text-align:left; padding-left:20px">
-                <h5>€ {item.services.all().last().service.price}</h5>
-              </td>
-              <td style="text-align:left; padding-left:20px">
-                <h5>{item.services.all().last().qty}</h5>
-              </td>
-              <td style="text-align:left; padding-left:20px" rowspan="{item.services.count()}">
-                <h5>€ {item.final_price}</h5>
-              </td>
-            </tr>
-        """
-
         for service in item.services.all():
-            if item.services.last() != service:
+            if service.qty:
                 html += f"""
-                    <tr>
-                        <td>
-                        <h5>{service.service.title}</h5>
-                      </td>
-    
-                      <td>
-                        <h5>€ {service.service.price}</h5>
-                      </td>
-                      <td>
-                          <h5>{ service.qty }</h5>
-                      </td>
-                    </tr>
-                """
+                <tr class="item">
+					<td>{item.content_object.title}</td>
+					<td style="text-align: left;">{service.service.title}</td>
+					<td style="text-align: center;">€{service.service.price}</td>
+					<td style="text-align: right;">{service.qty}</td>
+				</tr>
+            """
 
     html += f"""\
-                <tr>
-                    <td></td>
-                    <td></td>
-                    <td></td>
-                    <td></td>
-                    <td><strong>Итог</strong></td>
-                    <td><strong>{cart.final_price}</strong></td>
-                </tr>
-                </tbody>
-            </table>
-            <br>
-            <h4 style='text-align: center;'>Возникли вопросы?</h4>
-            Решение спорных моментов, проблем с заказами: <i>Алексей</i> 58256779
-            <br>
-            Email: fotolife.school@gmail.com
-            <br>
-            <br>
-            <hr>
-            <strong>АДМИНИСТРАЦИЯ ШКОЛЫ НЕ ВЛАДЕЕТ ИНФОРМАЦИЕЙ ПО ЗАКАЗАМ, ДЕНЬГИ И ДОЗАКАЗЫ НЕ ПРИНИМАЕТ, РЕШЕНИЕМ ПРОБЛЕМ НЕ ЗАНИМАЕТСЯ.
-            СВЯЖИТЕСЬ, ПОЖАЛУЙСТА, С НАМИ.</strong>
-        </body>
-    </html>
+                <tr class="total">
+					<td></td>
+					<td></td>
+					<td>Доставка: €{album.ship_price}</td>
+					<td style="text-align: right;">Итог: €{cart.total}</td>
+				</tr>
+			</table>
+		</div>
+	</body>
+</html>
     """
     msg.attach(MIMEText(html, 'html'))
 
