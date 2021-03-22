@@ -41,7 +41,6 @@ def contact_mail(name, email, message):
 
     return response
 
-
 def send_mail(addr_to, first_name, last_name, phone, comment, cart, order):
 
     credentials = EmailCredentials.objects.last()
@@ -62,12 +61,10 @@ def send_mail(addr_to, first_name, last_name, phone, comment, cart, order):
 		<head>
 			<meta charset="utf-8" />
 			<title>Выставленный счет</title>
-
 			<style>
 				body {
 					font-family: 'Calibri Light', 'Helvetica', Helvetica, Arial, sans-serif;
 				}
-
 				.invoice-box {
 					max-width: 800px;
 					margin: auto;
@@ -78,82 +75,66 @@ def send_mail(addr_to, first_name, last_name, phone, comment, cart, order):
 					line-height: 24px;
 					color: #555;
 				}
-
 				.invoice-box table {
 					width: 100%;
 					line-height: inherit;
 					text-align: left;
 				}
-
 				.invoice-box table td {
 					padding: 5px;
 					vertical-align: top;
 				}
-
 				.invoice-box table tr td:nth-child(2) {
 					text-align: right;
 				}
-
 				.invoice-box table tr.top table td {
 					padding-bottom: 20px;
 				}
-
 				.invoice-box table tr.top table td.title {
 					font-size: 45px;
 					line-height: 45px;
 					color: #333;
 				}
-
 				.invoice-box table tr.information table td {
 					padding-bottom: 40px;
 				}
-
 				.invoice-box table tr.heading td {
 					background: #eee;
 					border-bottom: 1px solid #ddd;
 					font-weight: bold;
 				}
-
 				.invoice-box table tr.details td {
 					padding-bottom: 20px;
 				}
-
 				.invoice-box table tr.item td {
 					border-bottom: 1px solid #eee;
 				}
-
 				.invoice-box table tr.item.last td {
 					border-bottom: none;
 				}
-
 				.invoice-box table tr.total td:nth-child(2) {
 					border-top: 2px solid #eee;
 					font-weight: bold;
 				}
-
 				@media only screen and (max-width: 600px) {
 					.invoice-box table tr.top table td {
 						width: 100%;
 						display: block;
 						text-align: center;
 					}
-
 					.invoice-box table tr.information table td {
 						width: 100%;
 						display: block;
 						text-align: center;
 					}
 				}
-
 				/** RTL **/
 				.rtl {
 					direction: rtl;
 				}
-
 				.rtl table {
 					text-align: right;
 				}
-
 				.rtl table tr td:nth-child(2) {
 					text-align: left;
 				}
@@ -170,7 +151,6 @@ def send_mail(addr_to, first_name, last_name, phone, comment, cart, order):
 									<td>
 										<h1 style="padding-top: 24px;">Школьный фотобанк</h1>
 									</td>
-
 									<td style="text-align: right;">
 										Выставленный счёт №{order.id}<br />
 										{datetime.today().strftime('%d-%m-%Y')}<br />
@@ -180,7 +160,6 @@ def send_mail(addr_to, first_name, last_name, phone, comment, cart, order):
 							</table>
 						</td>
 					</tr>
-
 					<tr class="information">
 						<td colspan="4">
 							<table>
@@ -190,7 +169,6 @@ def send_mail(addr_to, first_name, last_name, phone, comment, cart, order):
 										{contact.address}<br />
 										{contact.city}, {contact.zip}
 									</td>
-
 									<td style='text-align: right;'>
 									    {first_name} {last_name}<br />
 										{phone}<br />
@@ -200,15 +178,12 @@ def send_mail(addr_to, first_name, last_name, phone, comment, cart, order):
 							</table>
 						</td>
 					</tr>
-
 					<tr class="heading">
 						<td colspan="4">Альбомы</td>
 					</tr>
 					<tr class="item">
 						<td colspan="4">{album.name}</td>
 					</tr>
-
-
 					<tr class="heading">
 						<td>Название</td>
 						<td style="text-align: left;">Формат</td>
@@ -235,7 +210,29 @@ def send_mail(addr_to, first_name, last_name, phone, comment, cart, order):
 					<td>Доставка: €{album.ship_price}</td>
 					<td style="text-align: right;">Итог: €{cart.total}</td>
 				</tr>
+				<tr>
+				    <td colspan="4" style="text-align: right;">
+				    <strong>Укажите школу, класс, имя и фамилию ученика в описании к платежу</strong>
+				    </td>
+				</tr>
 			</table>
+			<br>
+			<table>
+			    <tr class="heading">
+			        <td colspan="4">
+			            Контактная информация
+			        </td>
+			    </tr>
+			    
+				<tr>
+				    <td colspan="4">Решение спорных моментов, проблемы с заказами — Алексей, 58256779</td>
+				</tr>
+				<tr>
+				    <td colspan="4">Заказы и пожелания Ассистент — Ульяна, 55569718</td>
+				</tr>
+			</table>
+			<p><i>АДМИНИСТРАЦИЯ ШКОЛЫ НЕ ВЛАДЕЕТ ИНФОРМАЦИЕЙ ПО ЗАКАЗАМ, ДЕНЬГИ И ДОЗАКАЗЫ НЕ ПРИНИМАЕТ, 
+			РЕШЕНИЕМ ПРОБЛЕМ НЕ ЗАНИМАЕТСЯ.</i></p>
 		</div>
 	</body>
 </html>
