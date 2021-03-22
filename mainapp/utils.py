@@ -231,6 +231,21 @@ def send_mail(addr_to, first_name, last_name, phone, comment, cart, order):
 				    <td colspan="4">Заказы и пожелания Ассистент — Ульяна, 55569718</td>
 				</tr>
 			</table>
+			<br>
+			<table>
+			    <tr class="heading">
+			        <td colspan="4">
+			        Пожелание к заказу
+			        </td>
+			    </tr>
+			    <tr class="item">
+			        <td>
+			            {comment}
+			        </td>
+			    </tr>
+			</table>
+			    
+			</br>
 			<p><i>АДМИНИСТРАЦИЯ ШКОЛЫ НЕ ВЛАДЕЕТ ИНФОРМАЦИЕЙ ПО ЗАКАЗАМ, ДЕНЬГИ И ДОЗАКАЗЫ НЕ ПРИНИМАЕТ, 
 			РЕШЕНИЕМ ПРОБЛЕМ НЕ ЗАНИМАЕТСЯ.</i></p>
 		</div>
