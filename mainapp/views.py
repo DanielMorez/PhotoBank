@@ -24,7 +24,7 @@ from .models import Photo, Album, PhotoType, Watermark, Service
 from .forms import PackageUploadFiles, OrderForm, CartForm
 
 from .model_static import ContactInfo, StaticImage, Review, \
-                        Media, Portfolio, ServiceAndPrice
+    Media, Portfolio, ServiceAndPrice, PrivacyPoliceModel
 
 from django.utils.crypto import get_random_string
 
@@ -331,3 +331,17 @@ class ChangeQty(CartMixin, View):
                  'cart_total_price': self.cart.total,
                  'final_price': cart_product.final_price
                  }, status=200)
+
+
+class PrivacyPolice(LanguageMixin, View):
+
+    def get(self, request, *args, **kwargs):
+        context = {}
+        context['lang'] = self.customer.lang
+        context['privacy'] = True
+        context['content'] = PrivacyPoliceModel.objects.all()
+
+        if StaticImage.objects.count():
+            context['images'] = StaticImage.objects.last()
+
+        return render(request, 'privacy.html', context)

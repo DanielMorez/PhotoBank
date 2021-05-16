@@ -163,7 +163,7 @@ class CartProduct(models.Model):
     content_object = GenericForeignKey('content_type', 'object_id')
     qty = models.PositiveIntegerField(default=1)
     final_price = models.DecimalField(max_digits=9, decimal_places=2, verbose_name='Общая цена', default=0)
-    services = models.ManyToManyField(Service, verbose_name='Формат фото', null=True, blank=True)
+    services = models.ManyToManyField('Service', verbose_name='Формат фото', null=True, blank=True)
 
     def __str__(self):
         if self.content_object:

@@ -1,9 +1,9 @@
 from django.contrib import admin
 from django.utils.safestring import mark_safe
 
-from .model_static import RusLang, EstLang, StaticImage, Review,\
-                            Media, Portfolio, ServiceAndPrice, \
-                            EmailCredentials, ContactInfo
+from .model_static import RusLang, EstLang, StaticImage, Review, \
+    Media, Portfolio, ServiceAndPrice, \
+    EmailCredentials, ContactInfo, PrivacyPoliceModel
 
 from django.forms import ModelForm, ValidationError
 
@@ -128,3 +128,4 @@ admin.site.register(Portfolio)
 admin.site.register(ServiceAndPrice)
 admin.site.register(EmailCredentials)
 admin.site.register(ContactInfo)
+admin.site.register(PrivacyPoliceModel)

@@ -85,6 +85,8 @@
                        href="#qna"{% else %}href="/" target="_blank"{% endif %}>{% if lang == 'rus' %}Часто задаваемые вопросы{% else %}Korduma kippuvad küsimused{% endif %}</a></li>
                   <li><a class="section-scroll" {% if request.resolver_match.view_name == 'base' %}
                        href="#contact"{% else %}href="/" target="_blank"{% endif %}>{% if lang == 'rus' %}Контакты{% else %}Kontaktid{% endif %}</a></li>
+                    <li><a class="section-scroll" {% if request.resolver_match.view_name == 'base' %}
+                       href="/privacy"{% else %}href="/" target="_blank"{% endif %}>{% if lang == 'rus' %}Политика конфиденциальности{% else %}Privaatsuspoliitika{% endif %}</a></li>
                 </ul>
                 </li>
                 <li></li>
@@ -111,7 +113,12 @@
           <div class="caption-content">
           {% if not album %}
             <div class="font-alt mb-30 titan-title-size-1">{{ lang_dict.home_section_up }}</div>
-            <div class="font-alt mb-40 titan-title-size-3">{{ lang_dict.home_section_first_part }} <span class="rotate">{{ lang_dict.home_section_second_part }}</span>
+            <div class="font-alt mb-40 titan-title-size-3">
+            {% if not privacy %}
+                {{ lang_dict.home_section_first_part }} <span class="rotate">{{ lang_dict.home_section_second_part }}</span>
+            {% else %}
+                {% if lang == 'rus' %} Политика конфиденциальности {% else %}Privaatsuspoliitika{% endif %}
+            {% endif %}
             </div><a class="section-scroll btn btn-border-w btn-circle" href="#about">{% if lang == 'rus' %}Узнать больше{% else %}Lisateabe saamiseks{% endif %}</a>
           {% else %}
               <div class="font-alt mb-40 titan-title-size-3">{{ album.name }}</div>

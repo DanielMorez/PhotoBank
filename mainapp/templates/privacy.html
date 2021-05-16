@@ -1,0 +1,21 @@
+{% extends 'base.html' %}
+
+{% block content %}
+     <section class="module" id="about" style="top: -200px">
+          <div class="container">
+            <div class="row multi-columns-row">
+              <div class="col-sm-12">
+                {% for line in content %}
+                    {% if lang == 'rus' %}
+                        <h{{ line.title_size }}>{{ line.title_rus }}</h{{ line.title_size }}>
+                        <p>{{ line.content_rus }}</p>
+                    {% else %}
+                        <h{{ line.title_size }}>{{ line.title_est }}</h{{ line.title_size }}>
+                        <p>{{ line.content_est }}</p>
+                    {% endif %}
+                {% endfor %}
+              </div>
+            </div>
+          </div>
+     </section>
+{% endblock %}

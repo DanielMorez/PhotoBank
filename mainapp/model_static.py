@@ -237,3 +237,24 @@ class EmailCredentials(models.Model):
 
     def __str__(self):
         return f'{self.id}: {self.email}'
+
+
+class PrivacyPoliceModel(models.Model):
+    header_size = (
+        ('1', 'h1'),
+        ('2', 'h2'),
+        ('3', 'h3'),
+        ('4', 'h4'),
+        ('5', 'h5')
+    )
+
+
+    title_rus = models.CharField(max_length=124, verbose_name='Заголовок на русском')
+    title_est = models.CharField(max_length=124, verbose_name='Заголовок на эстонском', null=True, blank=True)
+    content_rus = models.TextField(verbose_name='Контент на русском')
+    content_est = models.TextField(verbose_name='Контент на эстонском', null=True, blank=True)
+    visible = models.BooleanField(verbose_name='Показывать', default=True)
+    title_size = models.CharField(max_length=2, verbose_name='Размер заголовка', choices=header_size, default=3)
+
+    def __str__(self):
+        return self.title_rus
