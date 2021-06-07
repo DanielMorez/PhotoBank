@@ -153,7 +153,7 @@ def send_mail(addr_to, first_name, last_name, phone, comment, cart, order):
 									</td>
 									<td style="text-align: right;">
 										Выставленный счёт №{order.id}<br />
-										{datetime.today().strftime('%d-%m-%Y')}<br />
+										{datetime.today().strftime('%d.%m.%Y')}<br />
 										
 									</td>
 								</tr>
@@ -166,12 +166,12 @@ def send_mail(addr_to, first_name, last_name, phone, comment, cart, order):
 								<tr>
 									<td>
 										<b>PHOTOBOUTIQUE OU</b> Reg №: <b>12430562</b><br />
-										<br/>
-										Tallinn 10113 Lastekodu 24-6<br/>
-										<br/>
-										SEB pank EE491010220236822220<br />
-										<br/>
-										Тел: +372 58256779<br />
+										
+										<b>Tallinn 10113 Lastekodu 24-6</b><br/>
+										
+										<b>SEB pank EE491010220236822220</b><br />
+										
+										Тел: <b>+372 58256779</b>
 									</td>
 									<td style='text-align: right;'>
 									    {first_name} {last_name}<br />
