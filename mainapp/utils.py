@@ -154,7 +154,7 @@ def send_mail(addr_to, first_name, last_name, phone, comment, cart, order):
 									<td style="text-align: right;">
 										Выставленный счёт №{order.id}<br />
 										{datetime.today().strftime('%d-%m-%Y')}<br />
-										Alex Nazarati, {contact.phone}
+										
 									</td>
 								</tr>
 							</table>
@@ -165,9 +165,13 @@ def send_mail(addr_to, first_name, last_name, phone, comment, cart, order):
 							<table>
 								<tr>
 									<td>
-										{contact.company}<br />
-										{contact.address}<br />
-										{contact.city}, {contact.zip}
+										<b>PHOTOBOUTIQUE OU</b> Reg №: <b>12430562</b><br />
+										<br/>
+										Tallinn 10113 Lastekodu 24-6<br/>
+										<br/>
+										SEB pank EE491010220236822220<br />
+										<br/>
+										Тел: +372 58256779<br />
 									</td>
 									<td style='text-align: right;'>
 									    {first_name} {last_name}<br />
@@ -230,6 +234,9 @@ def send_mail(addr_to, first_name, last_name, phone, comment, cart, order):
 				<tr>
 				    <td colspan="4">Заказы и пожелания Ассистент — Ульяна, 55569718</td>
 				</tr>
+				<tr>
+					<td colspan=4>Адрес: Tallinn 10113 Lastekodu 24-6</td>
+				</th>
 			</table>
 			<br>
 			<table>
