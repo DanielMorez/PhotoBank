@@ -32,6 +32,7 @@ class Album(models.Model):
     slug = models.SlugField(unique=True)
     upload_to = models.CharField(max_length=124, verbose_name='Папка загрузки')
     ship_price = models.DecimalField(max_digits=9, decimal_places=2, verbose_name='Цена доставки', default=0)
+    spreadsheet = models.URLField(verbose_name='Google Spreadsheet', null=True, blank=True)
 
     def delete(self, *args, **kwargs):
         # You have to prepare what you need before delete the model
