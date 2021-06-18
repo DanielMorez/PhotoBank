@@ -44,5 +44,4 @@ def order2list(obj: Order):
                 else:
                     row[work_section['qty']] = service.qty
                 row[work_section['detail']] = row[work_section['qty']] + f'{service.service.title} ({service.qty} шт), '
-
     return row

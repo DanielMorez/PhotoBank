@@ -30,7 +30,6 @@ def insert(spreadsheet_id,
         "majorDimension": "ROWS",
     }
 
-    # Call the Sheets API
     try:
         sheet = service.spreadsheets()
         sheets = sheet.get(spreadsheetId=spreadsheet_id).execute().get('sheets')
