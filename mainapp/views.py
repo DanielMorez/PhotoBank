@@ -2,6 +2,8 @@ import os
 
 from decimal import Decimal
 
+from google.converter import order2list
+from google.spreadsheet import parse, insert
 from photoBank.settings import MEDIA_ROOT, MEDIA_URL
 from django.views.static import serve
 
@@ -310,6 +312,11 @@ class MakeOrderView(CartMixin, View):
                     new_order.save()
                     self.cart.save()
                     response = send_mail(email, first_name, last_name, phone, comment, self.cart, new_order)
+                    if self.album.spreadsheet:
+                        row = order2list(new_order)
+                        spread, sheet = parse(self.album.spreadsheet)
+                        insert(spread, sheet, [row])
+
                     return JsonResponse({'cart_counter': 0, 'email': response, 'album': f'/albums/{album_slug}'},
                                         status=200)
 
