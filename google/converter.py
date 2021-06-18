@@ -37,11 +37,13 @@ def order2list(obj: Order):
     for item in obj.cart.related_products.all():
         for service in item.services.all():
             if service.qty:
-                work_section = table_map[service.service.title.lower()]
-                row[work_section['price']] = float(service.service.price)
-                if row[work_section['qty']] != '':
-                    row[work_section['qty']] = row[work_section['qty']] + service.qty
-                else:
-                    row[work_section['qty']] = service.qty
-                row[work_section['detail']] = row[work_section['qty']] + f'{service.service.title} ({service.qty} шт), '
+                work_section = table_map.get(service.service.title.lower())
+
+                if work_section:
+                    row[work_section['price']] = float(service.service.price)
+                    if row[work_section['qty']] != '':
+                        row[work_section['qty']] = row[work_section['qty']] + service.qty
+                    else:
+                        row[work_section['qty']] = service.qty
+                    row[work_section['detail']] = row[work_section['qty']] + f'{service.service.title} ({service.qty} шт), '
     return row
