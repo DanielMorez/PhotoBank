@@ -195,7 +195,7 @@ class AddToCartView(CartMixin, View):
                 object_id=content_object.id,
             )
             for s in services:
-                service = Service.objects.create(qty=1, final_price=s.price, service=s)
+                service = Service.objects.create(qty=0, final_price=0, service=s)
                 cart_product.services.add(service)
             cart_product.save()
             self.cart.products.add(cart_product)
